@@ -2,6 +2,14 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: Security and accessibility pass
+- axe-core WCAG 2.1 A/AA scans were added to the browser tests (home, chat and settings; dark and light; desktop and mobile). The first run found low-contrast "faint" text in the mobile drawer and settings, so the colour was raised to at least 4.5:1. All scans now pass.
+- Dialogs: focus moves into the dialog, stays trapped while it's open, and returns to the trigger on close. A browser test covers this.
+- Model output can no longer load remote images (an exfiltration risk via prompt injection), and raw HTML and `javascript:` links are confirmed blocked (3 jsdom tests).
+- A production CSP was added, and a browser test confirms it causes no violations during a chat.
+- Dependency audit: two advisories, both unreachable from AEGIS code (details in docs/SECURITY.md).
+- Totals: 78 unit tests and 28 browser tests (1 skipped by design on mobile).
+
 ## 2026-10-09: v0.5. Per-user daily limits
 - Built: migration `0003_usage.sql` (the `usage_daily` table and `bump_usage()`), `src/lib/server/quota.ts`, and a check in `/api/chat`.
 - Verified: 75 unit tests and 20 browser tests pass. New database tests confirm the counter increments, users can't edit or reset their own counts, and users can't see each other's usage.

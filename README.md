@@ -47,6 +47,7 @@ With no keys, AEGIS runs in demo mode. Add `GEMINI_API_KEY`, `GROQ_API_KEY` or `
 ## Docs
 
 - [Audit](docs/AUDIT.md)
+- [Security notes](docs/SECURITY.md)
 - [Changelog](CHANGELOG.md)
 - [Deployment guide](docs/DEPLOYMENT.md): Vercel + Supabase, step by step
 - [Architecture](docs/ARCHITECTURE.md)

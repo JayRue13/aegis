@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Accessibility: automated WCAG 2.1 AA scans pass in dark and light themes on desktop and mobile. Faint text now has higher contrast. Dialogs take focus, keep Tab inside, and return focus when closed.
+- Security: images in model replies are shown as links instead of being loaded, which blocks data leaks through injected image URLs. Added a strict Content Security Policy, HSTS and COOP. Security notes are in docs/SECURITY.md.
+
 ## 0.5.0 (2026-10-09)
 - Optional daily message limit per signed-in user (`AEGIS_DAILY_MESSAGE_LIMIT`), with admins exempt. This protects free model quotas once friends and family use AEGIS.
 

@@ -5,7 +5,7 @@ import type { ChatMessage } from "@/lib/types";
 import { Markdown } from "./Markdown";
 import { Logo } from "./Logo";
 import { IconCheck, IconCopy, IconEdit, IconFile, IconRefresh, IconSpeaker, IconStop } from "./Icons";
-import { cn } from "@/lib/util";
+import { cn, hostOf } from "@/lib/util";
 
 export function MessageItem({
   message,
@@ -160,9 +160,7 @@ export function MessageItem({
                     : "border-danger/30 text-danger/80 line-through decoration-danger/40",
                 )}
               >
-                <span className="truncate">
-                  {src.ok ? `Read: ${src.title ?? new URL(src.url).hostname}` : new URL(src.url).hostname}
-                </span>
+                <span className="truncate">{src.ok ? `Read: ${src.title ?? hostOf(src.url)}` : hostOf(src.url)}</span>
               </a>
             ))}
           </div>

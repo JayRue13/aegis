@@ -51,6 +51,14 @@ export const Markdown = memo(function Markdown({ text }: { text: string }) {
         rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}
         components={{
           pre: CodeBlock,
+          // Never auto-load images from model output: a prompt-injected page
+          // could otherwise smuggle data out through an image URL.
+          img: ({ src, alt }) =>
+            typeof src === "string" && /^https?:/.test(src) ? (
+              <a href={src} target="_blank" rel="noopener noreferrer">
+                🖼 {alt || "image"}
+              </a>
+            ) : null,
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noopener noreferrer">
               {children}

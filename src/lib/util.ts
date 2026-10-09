@@ -32,6 +32,15 @@ export function recencyGroup(iso: string, now = new Date()): string {
   return "Older";
 }
 
+/** Hostname of a URL, or the input itself if it isn't a valid URL. */
+export function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
