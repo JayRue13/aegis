@@ -28,6 +28,8 @@ const PREF = {
   name: "aegis:name",
   code: "aegis:access-code",
   learn: "aegis:learn",
+  mode: "aegis:mode",
+  instructions: "aegis:instructions",
 };
 
 function readPref(key: string, fallback = ""): string {
@@ -106,6 +108,9 @@ export function AegisApp() {
   const [userName, setUserName] = useState(() => readPref(PREF.name));
   const [accessCode, setAccessCode] = useState(() => readPref(PREF.code));
   const [learn, setLearn] = useState(() => readPref(PREF.learn, "on") !== "off");
+  const [mode, setMode] = useState(() => readPref(PREF.mode, "chat"));
+  const [webSearch, setWebSearch] = useState(false);
+  const [customInstructions, setCustomInstructions] = useState(() => readPref(PREF.instructions));
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
@@ -321,6 +326,9 @@ export function AegisApp() {
             memories,
             project: project ? { name: project.name, instructions: project.instructions } : null,
             userName: userName || undefined,
+            customInstructions: customInstructions || undefined,
+            mode,
+            webSearch: webSearch || undefined,
           },
           authHeaders(),
           (delta) => {
@@ -365,7 +373,7 @@ export function AegisApp() {
         setToast(`Couldn't save reply: ${(err as Error).message}`);
       }
     },
-    [store, model, projects, memories, userName, authHeaders, learn, learnFrom],
+    [store, model, projects, memories, userName, authHeaders, learn, learnFrom, customInstructions, mode, webSearch],
   );
 
   const addMemory = useCallback(
@@ -668,6 +676,13 @@ export function AegisApp() {
             }}
             disabled={!store}
             autoFocusKey={activeId}
+            mode={mode}
+            onModeChange={(m) => {
+              setMode(m);
+              writePref(PREF.mode, m === "chat" ? "" : m);
+            }}
+            webSearch={webSearch}
+            onWebSearchChange={setWebSearch}
             onExtract={async (file) => {
               const doc = await extractDocument(file, authHeaders());
               return { name: doc.pages ? `${doc.name} (${doc.pages} pages)` : doc.name, text: doc.text };
@@ -761,6 +776,11 @@ export function AegisApp() {
           }}
           theme={theme}
           onTheme={setTheme}
+          customInstructions={customInstructions}
+          onCustomInstructions={(t) => {
+            setCustomInstructions(t);
+            writePref(PREF.instructions, t);
+          }}
           learn={learn}
           onLearn={(on) => {
             setLearn(on);

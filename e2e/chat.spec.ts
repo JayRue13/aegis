@@ -135,3 +135,19 @@ test("voice input fills the message box", async ({ page }) => {
   await page.getByRole("button", { name: "Voice input" }).click();
   await expect(page.getByRole("textbox", { name: "Message" })).toHaveValue("plan my study week");
 });
+
+test("research mode searches the web and shows sources", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("model-picker").click();
+  await page.getByRole("option", { name: "echo-1" }).click();
+  await page.getByRole("combobox", { name: "Assistant mode" }).selectOption("research");
+  await expect(page.getByRole("button", { name: "Search the web" })).toHaveAttribute("aria-pressed", "true");
+
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("How do pilots study weather?");
+  await box.press("Enter");
+  const reply = page.locator('[data-role="assistant"]').last();
+  await expect(reply).toContainText("[search received]");
+  await expect(reply).toContainText("[research mode]");
+  await expect(page.getByTestId("sources")).toContainText("Pilot training basics");
+});

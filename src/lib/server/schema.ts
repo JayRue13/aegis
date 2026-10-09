@@ -39,6 +39,9 @@ export const chatRequestSchema = z.object({
     .nullable()
     .optional(),
   userName: z.string().max(100).optional(),
+  customInstructions: z.string().max(4000).optional(),
+  mode: z.string().max(40).optional(),
+  webSearch: z.boolean().optional(),
   temperature: z.number().min(0).max(2).optional(),
 });
 

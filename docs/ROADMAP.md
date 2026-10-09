@@ -31,13 +31,14 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ⏳ Workspace knowledge files with retrieval
 - ✅ Download a chat as Markdown
 - ✅ Voice input (browser speech recognition)
-- 💤 Export as PDF/DOCX; spoken replies
+- ✅ Read replies aloud
+- 💤 Export as PDF/DOCX
 
 ## Milestone 4: Agents and tools ⏳
 - Tool-calling framework in the gateway
 - ✅ URL reader (links in a message are fetched with SSRF protection)
-- Web search (free tier: Brave/Tavily/SearXNG)
-- Specialist modes: research, coding, planning
+- ✅ Web search (Wikipedia with no key, SearXNG or Brave optional)
+- ✅ Specialist modes: Research, Code, Plan, Write (instruction presets)
 - 💤 Sandboxed code execution; calendar/email integrations
 
 ## Milestone 5: Automation and sync 💤

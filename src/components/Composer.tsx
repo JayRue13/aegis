@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { FileContext, ImagePart, ModelInfo } from "@/lib/types";
 import { imageToDataUrl, isDocumentFile, isImageFile, isTextFile } from "@/lib/chat-client";
-import { IconClip, IconFile, IconMic, IconSend, IconStop, IconX } from "./Icons";
+import { IconClip, IconFile, IconGlobe, IconMic, IconSend, IconStop, IconX } from "./Icons";
+import { MODES } from "@/lib/modes";
 import { useSpeech } from "./useSpeech";
 import { ModelPicker } from "./ModelPicker";
 import { cn } from "@/lib/util";
@@ -26,6 +27,10 @@ export function Composer({
   disabled,
   autoFocusKey,
   onExtract,
+  mode,
+  onModeChange,
+  webSearch,
+  onWebSearchChange,
 }: {
   onSend: (input: ComposerSubmit) => void;
   onStop: () => void;
@@ -36,7 +41,13 @@ export function Composer({
   disabled?: boolean;
   autoFocusKey?: string | null;
   onExtract: (file: File) => Promise<FileContext>;
+  mode: string;
+  onModeChange: (id: string) => void;
+  webSearch: boolean;
+  onWebSearchChange: (on: boolean) => void;
 }) {
+  const modeSearches = MODES.find((m) => m.id === mode)?.search ?? false;
+  const searchOn = webSearch || modeSearches;
   const [text, setText] = useState("");
   const [images, setImages] = useState<ImagePart[]>([]);
   const [files, setFiles] = useState<FileContext[]>([]);
@@ -204,6 +215,32 @@ export function Composer({
               e.target.value = "";
             }}
           />
+          <button
+            type="button"
+            onClick={() => !modeSearches && onWebSearchChange(!webSearch)}
+            className={cn(
+              "flex items-center gap-1 rounded-lg p-2 text-xs transition",
+              searchOn ? "bg-accent/15 text-accent" : "text-muted hover:bg-surface-2 hover:text-fg",
+            )}
+            aria-pressed={searchOn}
+            aria-label="Search the web"
+            title={modeSearches ? "Research mode always searches the web" : "Search the web for this message"}
+          >
+            <IconGlobe width={17} height={17} />
+          </button>
+          <select
+            value={mode}
+            onChange={(e) => onModeChange(e.target.value)}
+            disabled={streaming}
+            aria-label="Assistant mode"
+            className="shrink-0 cursor-pointer rounded-lg bg-transparent px-1 py-1 text-xs font-medium text-muted outline-none transition hover:bg-surface-2 hover:text-fg"
+          >
+            {MODES.map((m) => (
+              <option key={m.id} value={m.id} title={m.description} className="bg-surface text-fg">
+                {m.label}
+              </option>
+            ))}
+          </select>
           <ModelPicker models={models} value={model} onChange={onModelChange} disabled={streaming} />
         </div>
         <div className="flex items-center gap-1.5">

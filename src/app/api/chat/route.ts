@@ -4,6 +4,8 @@ import { chatRequestSchema } from "@/lib/server/schema";
 import { buildSystemPrompt, toProviderMessages } from "@/lib/prompt";
 import { selectMemories } from "@/lib/memory";
 import { fetchPage, findUrls } from "@/lib/server/webfetch";
+import { formatResults, searchWeb, toQuery } from "@/lib/server/search";
+import { getMode } from "@/lib/modes";
 import type { ChatMessage, ChatStreamEvent, SourceRef } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -43,16 +45,37 @@ export async function POST(req: Request) {
       sources = pages.map(({ url, ok, title, error }) => ({ url, ok, title, error }));
       const files = pages.filter((p) => p.ok && p.text).map((p) => ({ name: `${p.title} (${p.url})`, text: p.text! }));
       if (files.length) {
-        history = history.map((m) => (m === lastUser ? { ...m, files: [...(m.files ?? []), ...files] } : m));
+        history = history.map((m) => (m.id === lastUser.id ? { ...m, files: [...(m.files ?? []), ...files] } : m));
       }
     }
   }
+  // Web search (explicit toggle, or a mode that searches by default).
+  const mode = getMode(input.mode);
+  if (lastUser && (input.webSearch ?? mode.search) && process.env.AEGIS_WEB_SEARCH !== "false") {
+    const query = toQuery(lastUser.content);
+    if (query) {
+      try {
+        const results = await searchWeb(query);
+        sources = [...sources, ...results.map((r) => ({ url: r.url, title: r.title, ok: true }))];
+        const file = { name: "Web search results", text: formatResults(query, results) };
+        history = history.map((m) => (m.id === lastUser.id ? { ...m, files: [...(m.files ?? []), file] } : m));
+      } catch {
+        sources = [
+          ...sources,
+          { url: "https://search.invalid/", title: "Web search", ok: false, error: "Search failed" },
+        ];
+      }
+    }
+  }
+
   const memories = selectMemories(input.memories ?? [], lastUser?.content ?? "");
   const system = buildSystemPrompt({
     memories,
     projectName: input.project?.name,
     projectInstructions: input.project?.instructions,
     userName: input.userName,
+    customInstructions: input.customInstructions,
+    modePrompt: mode.prompt,
   });
 
   const gen = streamCompletion({

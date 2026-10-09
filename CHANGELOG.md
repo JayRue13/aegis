@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-10-09)
+- Assistant modes: Chat, Research, Code, Plan and Write.
+- Web search toggle. Research mode always searches and cites sources as [1], [2]. It uses Wikipedia with no key, or SearXNG or Brave if configured.
+- Custom instructions in Settings.
+- Read any reply aloud.
+- Fixed: the focus ring around the message box, and the composer toolbar overflowing on narrow phones.
+
 ## 0.3.0 (2026-10-09)
 - Paste a link and AEGIS reads the page. Private and internal addresses are refused, and the reply shows which pages were read.
 - Voice input through the browser's speech recognition.

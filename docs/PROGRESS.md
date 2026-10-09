@@ -2,6 +2,20 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: v0.4. Modes, web search, custom instructions, read aloud
+
+**Built**
+- A mode picker in the composer (Chat, Research, Code, Plan, Write) and a web search toggle. Results show up as source chips.
+- Server-side search (`src/lib/server/search.ts`) through SearXNG, Brave or Wikipedia, with numbered results for citation.
+- Custom instructions in Settings. Read-aloud on replies using `speechSynthesis`.
+- Fixes: the global focus ring overrode the composer's styles, and the toolbar overflowed on narrow phones.
+
+**Verified**
+- 71 unit tests pass. New ones cover provider selection, parsing for Wikipedia, SearXNG and Brave, error handling, query cleanup, and the mode and instruction prompt sections.
+- 20 browser tests pass. A new end-to-end check confirms Research mode searches through a fake SearXNG, sends the results and the mode instructions to the model, and shows the sources.
+
+**Not verified:** live Wikipedia and Brave calls, because the build sandbox has no internet.
+
 ## 2026-10-09: v0.3, links, voice, cloud images
 
 Jay chose to continue with this app rather than the Replit one (see DECISIONS.md).

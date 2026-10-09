@@ -53,12 +53,12 @@ export function ModelPicker({
   }, [models, q]);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative min-w-0" ref={ref}>
       <button
         type="button"
         disabled={disabled || models.length === 0}
         onClick={() => setOpen((o) => !o)}
-        className="flex max-w-[52vw] items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted transition hover:bg-surface-2 hover:text-fg disabled:opacity-50 sm:max-w-xs"
+        className="flex max-w-full items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted transition hover:bg-surface-2 hover:text-fg disabled:opacity-50 sm:max-w-xs"
         aria-haspopup="listbox"
         aria-expanded={open}
         data-testid="model-picker"

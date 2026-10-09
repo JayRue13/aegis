@@ -14,6 +14,14 @@ function stream(res, text) {
 
 createServer((req, res) => {
   if (req.url === "/v1/health") return res.end("ok");
+  if (req.url?.startsWith("/search")) {
+    res.setHeader("Content-Type", "application/json");
+    return res.end(
+      JSON.stringify({
+        results: [{ title: "Pilot training basics", url: "https://example.com/pilot", content: "Study weather." }],
+      }),
+    );
+  }
   if (req.url === "/v1/models") {
     res.setHeader("Content-Type", "application/json");
     return res.end(JSON.stringify({ data: [{ id: "echo-1" }] }));
@@ -27,6 +35,8 @@ createServer((req, res) => {
     const lastText = typeof last?.content === "string" ? last.content : "";
     if (system.includes("extract durable facts")) return stream(res, '["User is training to be a pilot"]');
     const remembered = system.includes("What you remember about the user") ? " [memories received]" : "";
-    stream(res, `Echo: ${lastText.split("\n").pop()}${remembered}`);
+    const searched = lastText.includes("Web search results") ? " [search received]" : "";
+    const moded = system.includes("Research mode") ? " [research mode]" : "";
+    stream(res, `Echo: ${lastText.split("\n").pop()}${remembered}${searched}${moded}`);
   });
 }).listen(port, "127.0.0.1");

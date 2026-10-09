@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { Markdown } from "./Markdown";
 import { Logo } from "./Logo";
-import { IconCheck, IconCopy, IconEdit, IconFile, IconRefresh } from "./Icons";
+import { IconCheck, IconCopy, IconEdit, IconFile, IconRefresh, IconSpeaker, IconStop } from "./Icons";
 import { cn } from "@/lib/util";
 
 export function MessageItem({
@@ -23,6 +23,26 @@ export function MessageItem({
   onEdit?: (text: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
+  const speak = () => {
+    const synth = window.speechSynthesis;
+    if (speaking) {
+      synth.cancel();
+      setSpeaking(false);
+      return;
+    }
+    synth.cancel();
+    const plain = message.content
+      .replace(/```[\s\S]*?```/g, " (code omitted) ")
+      .replace(/[#*_`>|]/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1");
+    const u = new SpeechSynthesisUtterance(plain);
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    synth.speak(u);
+  };
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
   const isUser = message.role === "user";
@@ -163,6 +183,11 @@ export function MessageItem({
             <ActionButton label={copied ? "Copied" : "Copy"} onClick={copy}>
               {copied ? <IconCheck width={15} height={15} /> : <IconCopy width={15} height={15} />}
             </ActionButton>
+            {canSpeak && (
+              <ActionButton label={speaking ? "Stop reading" : "Read aloud"} onClick={speak}>
+                {speaking ? <IconStop width={15} height={15} /> : <IconSpeaker width={15} height={15} />}
+              </ActionButton>
+            )}
             {isLast && onRegenerate && (
               <ActionButton label="Regenerate" onClick={onRegenerate}>
                 <IconRefresh width={15} height={15} />

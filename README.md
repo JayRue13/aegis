@@ -15,7 +15,10 @@ A personal AI platform: streaming chat across multiple free model providers, per
 - **Workspaces** with their own instructions (like project folders).
 - **Attachments**: PDF, Word (.docx), text and code files are read and added as context; images go to vision models.
 - **Links**: paste a URL and AEGIS reads the page (private and internal addresses are blocked).
-- **Voice input** with the browser's free speech recognition.
+- **Voice**: speak your message and have replies read aloud, both handled by the browser at no cost.
+- **Modes**: Chat, Research (searches the web and cites sources), Code, Plan, Write.
+- **Web search**: Wikipedia with no key needed, or your own SearXNG or a free Brave key.
+- **Custom instructions** that apply to every chat.
 - **History**: conversations grouped by date, pin, rename, delete, full-text search.
 - **Accounts (optional)**: Supabase email sign-in, synced history, row-level security, invite list.
 - **Protection**: shared access code mode, per-user rate limiting, production lock when no sign-in is configured.

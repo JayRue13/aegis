@@ -2,6 +2,12 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-09: Web search through context injection, not tool calling
+Free models support function calling unevenly. AEGIS runs the search on the server when you turn it on (or in Research mode) and passes numbered results to the model as context, so it works with every model. Wikipedia is the default because it needs no key. Real tool calling can be added later for models that support it.
+
+## 2026-10-09: Modes are instruction presets
+Research, Code, Plan and Write modes are focused system instructions, plus automatic search in Research mode. They cost nothing and work with any model. Agents that act on their own with tools are a later milestone.
+
 ## 2026-10-09: Continue the new app instead of the Replit app
 Jay chose to keep building the free, self-contained app rather than depend on Replit. Reviewing the old Replit app for prompts, features or the logo is optional and still to do.
 
@@ -14,8 +20,8 @@ Replaces the earlier names-only approach. Images go in a private bucket under `<
 ## 2026-10-09: Placeholder branding
 No final logo or palette files were available. The star mark and colour tokens are placeholders inspired by the described direction (symmetrical, fluid, star-like, subtle accents), isolated so final assets replace them in one place. See docs/AUDIT.md.
 
-## 2026-10-09: Start a fresh codebase (provisional until Replit is inventoried)
-No existing AEGIS code was reachable from this session (GitHub had only unrelated repos; Replit was connected after the session started). Jay asked for decisions to be made while he slept, so this repo was built as a working baseline. **When the Replit app is inventoried:** if it is a sensible, working AEGIS app, import it as a tagged baseline and decide per feature whether to port it here or move this work onto its stack. The deciding factor is what already works, not which is newer.
+## 2026-10-09: Start a fresh codebase (now the confirmed baseline)
+No existing AEGIS code was reachable from this session (GitHub had only unrelated repos; Replit was connected after the session started). Jay asked for decisions to be made while he slept, so this repo was built as a working baseline. **When the Replit app is inventoried:** if it is a sensible, working AEGIS app, import it as a tagged baseline and decide per feature whether to port it here or move this work onto its stack. The deciding factor is what already works, not which is newer. **Update:** Jay later chose this app as the baseline; Replit is only mined for ideas/assets.
 
 ## 2026-10-09: Custom Next.js app instead of hosting Open WebUI
 Only a custom app delivers the distinctive design, branding and multi-user product AEGIS aims for. Open WebUI also needs an always-on server. Ollama/Open WebUI remain usable as a model backend through `OLLAMA_BASE_URL`.

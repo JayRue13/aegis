@@ -7,6 +7,10 @@ export interface PromptContext {
   projectName?: string;
   projectInstructions?: string;
   userName?: string;
+  /** User-written standing instructions ("about me / how to respond"). */
+  customInstructions?: string;
+  /** Mode-specific instructions. */
+  modePrompt?: string;
   now?: Date;
 }
 
@@ -19,6 +23,10 @@ export function buildSystemPrompt(ctx: PromptContext = {}): string {
     `Current date: ${now.toISOString().slice(0, 10)}.`,
   ];
   if (ctx.userName) parts.push(`The user's name is ${ctx.userName}.`);
+  if (ctx.modePrompt) parts.push(`\n${ctx.modePrompt}`);
+  if (ctx.customInstructions?.trim()) {
+    parts.push(`\n## The user's standing instructions\n${ctx.customInstructions.trim()}`);
+  }
   if (ctx.projectName || ctx.projectInstructions) {
     parts.push(
       `\n## Workspace: ${ctx.projectName ?? "Untitled"}\n${ctx.projectInstructions?.trim() || "(no extra instructions)"}`,

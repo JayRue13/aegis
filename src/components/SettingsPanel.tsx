@@ -31,6 +31,8 @@ export function SettingsPanel({
   onTheme,
   learn,
   onLearn,
+  customInstructions,
+  onCustomInstructions,
   onExport,
   onImport,
   onClose,
@@ -51,6 +53,8 @@ export function SettingsPanel({
   onTheme: (t: Theme) => void;
   learn: boolean;
   onLearn: (on: boolean) => void;
+  customInstructions: string;
+  onCustomInstructions: (text: string) => void;
   onExport: () => void;
   onImport: (file: File) => Promise<string>;
   onClose: () => void;
@@ -154,6 +158,17 @@ export function SettingsPanel({
               onChange={(e) => onUserName(e.target.value)}
               placeholder="Your name"
               maxLength={100}
+            />
+          </label>
+          <label className="mt-4 block space-y-1.5">
+            <span className="text-sm text-muted">Custom instructions</span>
+            <textarea
+              className={`${inputClass} min-h-24 resize-y`}
+              value={customInstructions}
+              onChange={(e) => onCustomInstructions(e.target.value)}
+              placeholder="What should AEGIS know about you, and how should it respond? e.g. I'm a CS student. Keep answers short and use examples."
+              maxLength={4000}
+              aria-label="Custom instructions"
             />
           </label>
           <div className="mt-4">

@@ -32,6 +32,7 @@ export default defineConfig({
         AEGIS_DEFAULT_MODEL: "demo:aegis-demo",
         CUSTOM_OPENAI_BASE_URL: `http://127.0.0.1:${FAKE}/v1`,
         CUSTOM_OPENAI_LABEL: "Fake",
+        SEARXNG_URL: `http://127.0.0.1:${FAKE}`,
       },
     },
   ],

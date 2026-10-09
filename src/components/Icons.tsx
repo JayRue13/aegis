@@ -132,3 +132,14 @@ export const IconMic = (p: P) => (
     <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
   </Base>
 );
+export const IconGlobe = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+  </Base>
+);
+export const IconSpeaker = (p: P) => (
+  <Base {...p}>
+    <path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" />
+  </Base>
+);
