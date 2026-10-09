@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Session } from "@supabase/supabase-js";
-import type { ChatMessage, Conversation, Memory, ModelInfo, Project } from "@/lib/types";
+import type { AgentAction, ChatMessage, Conversation, Memory, ModelInfo, Project } from "@/lib/types";
 import type { ChatStore } from "@/lib/store/types";
 import { exportAll, importAll, type Backup } from "@/lib/store/types";
 import { LocalStore } from "@/lib/store/local";
@@ -317,7 +317,8 @@ export function AegisApp() {
       };
 
       let final: ChatMessage = assistant;
-      let sources: ChatMessage["sources"];
+      // Sources, tool steps and proposed actions arrive alongside the text.
+      let extra: Pick<ChatMessage, "sources" | "steps" | "actions"> = {};
       try {
         await streamChat(
           {
@@ -337,19 +338,22 @@ export function AegisApp() {
           },
           controller.signal,
           undefined,
-          (s) => {
-            sources = s;
-            setMessages((prev) => prev.map((m) => (m.id === assistant.id ? { ...m, sources: s } : m)));
+          (e) => {
+            if (e.type === "sources") extra = { ...extra, sources: [...(extra.sources ?? []), ...e.sources] };
+            else if (e.type === "step") extra = { ...extra, steps: [...(extra.steps ?? []), e.step] };
+            else extra = { ...extra, actions: [...(extra.actions ?? []), e.action] };
+            const snapshot = extra;
+            setMessages((prev) => prev.map((m) => (m.id === assistant.id ? { ...m, ...snapshot } : m)));
           },
         );
-        final = { ...assistant, content: text || "_(empty response)_", sources };
+        final = { ...assistant, content: text || (extra.actions?.length ? "" : "_(empty response)_"), ...extra };
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          final = { ...assistant, content: text || "_(stopped)_", sources };
+          final = { ...assistant, content: text || "_(stopped)_", ...extra };
         } else {
           const msg = err instanceof ChatRequestError ? err.message : `Something went wrong: ${(err as Error).message}`;
           final = text
-            ? { ...assistant, content: `${text}\n\n_(interrupted: ${msg})_`, sources }
+            ? { ...assistant, content: `${text}\n\n_(interrupted: ${msg})_`, ...extra }
             : { ...assistant, content: msg, error: true };
           if (err instanceof ChatRequestError && (err.status === 401 || err.status === 403)) setApiError(msg);
         }
@@ -486,6 +490,37 @@ export function AegisApp() {
       setPanel(null);
     },
     [store],
+  );
+
+  // Applies or dismisses a change the agent proposed, then records the decision.
+  const decideAction = useCallback(
+    async (messageId: string, action: AgentAction, approve: boolean) => {
+      if (!store || !activeId) return;
+      try {
+        if (approve && action.kind === "save_memory") await addMemory(action.payload.fact);
+        if (approve && action.kind === "create_workspace") {
+          const p: Project = {
+            id: uid(),
+            name: action.payload.name,
+            instructions: action.payload.instructions ?? "",
+            createdAt: nowIso(),
+          };
+          await store.saveProject(p);
+          setProjects((prev) => [...prev, p].sort((a, b) => a.name.localeCompare(b.name)));
+          setToast(`Created workspace “${p.name}”`);
+        }
+      } catch (err) {
+        setToast(`Couldn't apply that: ${(err as Error).message}`);
+        return;
+      }
+      const status: AgentAction["status"] = approve ? "approved" : "dismissed";
+      const msg = messages.find((m) => m.id === messageId);
+      if (!msg) return;
+      const updated = { ...msg, actions: msg.actions?.map((a) => (a.id === action.id ? { ...a, status } : a)) };
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? updated : m)));
+      await store.saveMessage(activeId, updated).catch(() => {});
+    },
+    [store, activeId, messages, addMemory],
   );
 
   const deleteProject = useCallback(
@@ -657,6 +692,7 @@ export function AegisApp() {
                   modelLabel={m.role === "assistant" ? modelLabel(m.model) : undefined}
                   onRegenerate={!streamingId ? regenerate : undefined}
                   onEdit={m.role === "user" && !streamingId ? (t) => editAndResend(m.id, t) : undefined}
+                  onDecide={(a, approve) => decideAction(m.id, a, approve)}
                 />
               ))}
             </div>

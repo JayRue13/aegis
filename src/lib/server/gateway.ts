@@ -91,7 +91,7 @@ export function describeHttpError(label: string, status: number, body: string): 
 
 /** Converts a delta generator into an NDJSON byte stream for the browser. */
 export function toEventStream(
-  gen: AsyncGenerator<string>,
+  gen: AsyncGenerator<string | ChatStreamEvent>,
   preamble: ChatStreamEvent[] = [],
 ): ReadableStream<Uint8Array> {
   const enc = new TextEncoder();
@@ -101,7 +101,7 @@ export function toEventStream(
     async start(controller) {
       for (const e of preamble) send(controller, e);
       try {
-        for await (const text of gen) send(controller, { type: "delta", text });
+        for await (const item of gen) send(controller, typeof item === "string" ? { type: "delta", text: item } : item);
         send(controller, { type: "done" });
       } catch (err) {
         send(controller, { type: "error", message: (err as Error).message || "Unknown error" });

@@ -1,7 +1,15 @@
 // Parses an OpenAI-compatible server-sent-events stream into text deltas.
 
+export interface ToolCallDelta {
+  index: number;
+  id?: string;
+  name?: string;
+  args?: string;
+}
+
 export interface SseDelta {
   text?: string;
+  toolCalls?: ToolCallDelta[];
   error?: string;
   done?: boolean;
 }
@@ -13,14 +21,27 @@ export function parseSseData(data: string): SseDelta | null {
   if (trimmed === "[DONE]") return { done: true };
   try {
     const json = JSON.parse(trimmed) as {
-      choices?: { delta?: { content?: string | null; reasoning?: string | null } }[];
+      choices?: {
+        delta?: {
+          content?: string | null;
+          tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[];
+        };
+      }[];
       error?: { message?: string } | string;
     };
     if (json.error) {
       return { error: typeof json.error === "string" ? json.error : (json.error.message ?? "Provider error") };
     }
-    const text = json.choices?.[0]?.delta?.content;
-    return text ? { text } : null;
+    const delta = json.choices?.[0]?.delta;
+    const text = delta?.content || undefined;
+    const toolCalls = delta?.tool_calls?.map((t, i) => ({
+      index: t.index ?? i,
+      id: t.id,
+      name: t.function?.name,
+      args: t.function?.arguments,
+    }));
+    if (!text && !toolCalls?.length) return null;
+    return { ...(text ? { text } : {}), ...(toolCalls?.length ? { toolCalls } : {}) };
   } catch {
     return null;
   }

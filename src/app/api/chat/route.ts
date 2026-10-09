@@ -7,6 +7,7 @@ import { selectMemories } from "@/lib/memory";
 import { fetchPage, findUrls } from "@/lib/server/webfetch";
 import { formatResults, searchWeb, toQuery } from "@/lib/server/search";
 import { getMode } from "@/lib/modes";
+import { AGENT_PROMPT, runAgent } from "@/lib/server/agent";
 import type { ChatMessage, ChatStreamEvent, SourceRef } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -81,19 +82,22 @@ export async function POST(req: Request) {
     projectInstructions: input.project?.instructions,
     userName: input.userName,
     customInstructions: input.customInstructions,
-    modePrompt: mode.prompt,
+    modePrompt: mode.agent ? AGENT_PROMPT : mode.prompt,
   });
 
-  const gen = streamCompletion({
-    modelId: input.model,
-    messages: toProviderMessages(history, system),
-    temperature: input.temperature,
-    signal: req.signal,
-  });
+  const providerMessages = toProviderMessages(history, system);
+  const gen: AsyncGenerator<string | ChatStreamEvent> = mode.agent
+    ? runAgent({ modelId: input.model, messages: providerMessages, signal: req.signal })
+    : streamCompletion({
+        modelId: input.model,
+        messages: providerMessages,
+        temperature: input.temperature,
+        signal: req.signal,
+      });
 
   // Surface configuration errors (unknown provider, bad key) as HTTP errors
   // instead of a stream, so the client can show them plainly.
-  let first: IteratorResult<string>;
+  let first: IteratorResult<string | ChatStreamEvent>;
   try {
     first = await gen.next();
   } catch (err) {
@@ -101,7 +105,7 @@ export async function POST(req: Request) {
     return json(status, (err as Error).message);
   }
 
-  async function* replay(): AsyncGenerator<string> {
+  async function* replay(): AsyncGenerator<string | ChatStreamEvent> {
     if (!first.done) yield first.value;
     yield* gen;
   }

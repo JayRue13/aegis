@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ChatMessage } from "@/lib/types";
+import type { AgentAction, ChatMessage } from "@/lib/types";
 import { Markdown } from "./Markdown";
 import { Logo } from "./Logo";
 import { IconCheck, IconCopy, IconEdit, IconFile, IconRefresh, IconSpeaker, IconStop } from "./Icons";
@@ -14,6 +14,7 @@ export function MessageItem({
   modelLabel,
   onRegenerate,
   onEdit,
+  onDecide,
 }: {
   message: ChatMessage;
   streaming: boolean;
@@ -21,6 +22,7 @@ export function MessageItem({
   modelLabel?: string;
   onRegenerate?: () => void;
   onEdit?: (text: string) => void;
+  onDecide?: (action: AgentAction, approve: boolean) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -165,6 +167,29 @@ export function MessageItem({
             ))}
           </div>
         )}
+        {message.steps && message.steps.length > 0 && (
+          <ul className="mb-2 space-y-1 text-xs text-muted" data-testid="agent-steps" aria-label="Tools used">
+            {message.steps.map((step, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-1.5">
+                <span aria-hidden="true" className={step.ok ? "text-accent" : "text-danger"}>
+                  {step.ok ? "✓" : "!"}
+                </span>
+                <span>{step.label}</span>
+                {step.links?.slice(0, 5).map((l) => (
+                  <a
+                    key={l.url}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="max-w-48 truncate rounded-full border border-line px-2 py-0.5 hover:bg-surface-2"
+                  >
+                    {l.title || hostOf(l.url)}
+                  </a>
+                ))}
+              </li>
+            ))}
+          </ul>
+        )}
         {message.error ? (
           <div className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">
             {message.content}
@@ -173,9 +198,48 @@ export function MessageItem({
           <div className={cn(streaming && "is-streaming")}>
             <Markdown text={message.content} />
           </div>
-        ) : (
+        ) : !streaming && message.actions?.length ? null : (
           <div className="flex h-7 items-center text-sm text-faint">Thinking…</div>
         )}
+        {message.actions?.map((action) => (
+          <div
+            key={action.id}
+            className="mt-3 rounded-2xl border border-line bg-surface-2 px-4 py-3 text-sm"
+            data-testid="agent-action"
+            role="group"
+            aria-label="Proposed change"
+          >
+            <div className="mb-1 text-xs font-medium uppercase tracking-wide text-faint">AEGIS wants to</div>
+            <div className="mb-3">{action.summary}</div>
+            {action.kind === "create_workspace" && action.payload.instructions && (
+              <p className="mb-3 line-clamp-3 text-xs text-muted">{action.payload.instructions}</p>
+            )}
+            {action.status === "pending" ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={streaming || !onDecide}
+                  onClick={() => onDecide?.(action, true)}
+                  className="btn-accent rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  disabled={streaming || !onDecide}
+                  onClick={() => onDecide?.(action, false)}
+                  className="rounded-lg px-3 py-1.5 text-sm text-muted hover:bg-surface-3 disabled:opacity-50"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : (
+              <div className="text-xs text-muted" role="status">
+                {action.status === "approved" ? "✓ Approved" : "Dismissed"}
+              </div>
+            )}
+          </div>
+        ))}
         {!streaming && message.content && (
           <div className="mt-2 flex items-center gap-1 opacity-60 transition group-hover:opacity-100">
             <ActionButton label={copied ? "Copied" : "Copy"} onClick={copy}>

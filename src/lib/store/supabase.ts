@@ -89,6 +89,8 @@ export class SupabaseStore implements ChatStore {
           files?: ChatMessage["files"];
           images?: ChatMessage["images"];
           sources?: ChatMessage["sources"];
+          steps?: ChatMessage["steps"];
+          actions?: ChatMessage["actions"];
         }) ?? {};
       return {
         id: r.id as string,
@@ -99,6 +101,8 @@ export class SupabaseStore implements ChatStore {
         files: att.files,
         images: att.images,
         sources: att.sources,
+        steps: att.steps,
+        actions: att.actions,
         createdAt: r.created_at as string,
       } as ChatMessage;
     });
@@ -140,7 +144,13 @@ export class SupabaseStore implements ChatStore {
         content: m.content,
         model: m.model ?? null,
         error: m.error ?? false,
-        attachments: { files: m.files, images: images.length ? images : undefined, sources: m.sources },
+        attachments: {
+          files: m.files,
+          images: images.length ? images : undefined,
+          sources: m.sources,
+          steps: m.steps,
+          actions: m.actions,
+        },
         created_at: m.createdAt,
       }),
     );

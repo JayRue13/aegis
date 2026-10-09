@@ -6,6 +6,8 @@ export interface Mode {
   description: string;
   /** Turn web search on automatically in this mode. */
   search?: boolean;
+  /** Let the model call tools (see src/lib/server/agent.ts). */
+  agent?: boolean;
   prompt: string;
 }
 
@@ -18,6 +20,13 @@ export const MODES: Mode[] = [
     search: true,
     prompt:
       "You are in Research mode. Base answers on the provided search results and pages, cite them inline as [1], [2] matching their numbers, say when sources disagree or are missing, and end with a short Sources list.",
+  },
+  {
+    id: "agent",
+    label: "Agent",
+    description: "Uses tools and asks before changing anything",
+    agent: true,
+    prompt: "",
   },
   {
     id: "code",

@@ -151,3 +151,40 @@ test("research mode searches the web and shows sources", async ({ page }) => {
   await expect(reply).toContainText("[research mode]");
   await expect(page.getByTestId("sources")).toContainText("Pilot training basics");
 });
+
+test("agent mode uses tools and asks before saving a memory", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await page.getByTestId("model-picker").click();
+  await page.getByRole("option", { name: "echo-1" }).click();
+  await page.getByRole("combobox", { name: "Assistant mode" }).selectOption("agent");
+
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("What is 6 times 7? Remember it's my favorite number.");
+  await box.press("Enter");
+  const reply = page.locator('[data-role="assistant"]').last();
+  await expect(reply).toContainText("Agent result: 42");
+  await expect(page.getByTestId("agent-steps")).toContainText("Calculated 6*7 = 42");
+
+  const card = page.getByTestId("agent-action");
+  await expect(card).toContainText("Remember: “Favorite number is 42”");
+  // Nothing is saved until the user approves.
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: "Memory" }).click();
+  await expect(page.getByTestId("memory-list")).not.toContainText("Favorite number is 42");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  if (isMobile) await page.getByRole("complementary").getByRole("button", { name: "Close sidebar" }).click();
+
+  await card.getByRole("button", { name: "Approve" }).click();
+  await expect(card).toContainText("Approved");
+  await page.reload();
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: "Memory" }).click();
+  await expect(page.getByTestId("memory-list")).toContainText("Favorite number is 42");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  if (isMobile) await page.getByRole("complementary").getByRole("button", { name: "Close sidebar" }).click();
+
+  // The decision is stored with the chat.
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: /What is 6 times 7/ }).first().click();
+  await expect(page.getByTestId("agent-action")).toContainText("Approved");
+});

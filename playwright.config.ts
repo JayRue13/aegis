@@ -29,6 +29,8 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         AEGIS_DEMO_MODE: "true",
+        // The whole suite shares one IP; the limiter itself is covered by unit tests.
+        AEGIS_RATE_LIMIT_PER_MIN: "1000",
         AEGIS_DEFAULT_MODEL: "demo:aegis-demo",
         CUSTOM_OPENAI_BASE_URL: `http://127.0.0.1:${FAKE}/v1`,
         CUSTOM_OPENAI_LABEL: "Fake",

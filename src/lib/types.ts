@@ -29,6 +29,25 @@ export interface ChatMessage {
   error?: boolean;
   /** Web pages read for this reply. */
   sources?: SourceRef[];
+  /** Tools the agent used while answering. */
+  steps?: AgentStep[];
+  /** Changes the agent proposed, awaiting or after the user's decision. */
+  actions?: AgentAction[];
+}
+
+export interface AgentStep {
+  tool: string;
+  label: string;
+  ok: boolean;
+  links?: { url: string; title?: string }[];
+}
+
+export interface AgentAction {
+  id: string;
+  kind: "save_memory" | "create_workspace";
+  summary: string;
+  payload: Record<string, string>;
+  status: "pending" | "approved" | "dismissed";
 }
 
 export interface SourceRef {
@@ -73,5 +92,7 @@ export interface ModelInfo {
 export type ChatStreamEvent =
   | { type: "delta"; text: string }
   | { type: "sources"; sources: SourceRef[] }
+  | { type: "step"; step: AgentStep }
+  | { type: "action"; action: AgentAction }
   | { type: "error"; message: string }
   | { type: "done" };
