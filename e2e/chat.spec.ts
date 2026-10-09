@@ -188,3 +188,31 @@ test("agent mode uses tools and asks before saving a memory", async ({ page, isM
   await page.getByRole("button", { name: /What is 6 times 7/ }).first().click();
   await expect(page.getByTestId("agent-action")).toContainText("Approved");
 });
+
+test("works offline after the first visit", async ({ page, context, browserName, isMobile }) => {
+  test.skip(browserName !== "chromium", "service worker test uses Chromium");
+  await page.goto("/");
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("Offline check");
+  await box.press("Enter");
+  await expect(page.locator('[data-role="assistant"]').last()).toContainText("Offline check");
+  // Wait until the service worker controls the page and has cached the shell.
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }));
+    }
+  });
+  await page.reload();
+  await page.waitForFunction(async () => (await caches.keys()).some((k) => k.startsWith("aegis-assets")));
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByTestId("offline-banner")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeVisible();
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: "Offline check" }).first().click();
+  await expect(page.locator('[data-role="assistant"]').last()).toContainText("Offline check");
+  await context.setOffline(false);
+  await expect(page.getByTestId("offline-banner")).toBeHidden();
+});

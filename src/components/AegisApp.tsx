@@ -72,6 +72,15 @@ function greeting(name: string): string {
   return name ? `${part}, ${name}` : part;
 }
 
+function subscribeOnline(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
 export function AegisApp() {
   const supabase = getSupabase();
   // false during server render and hydration, true afterwards.
@@ -80,6 +89,7 @@ export function AegisApp() {
     () => true,
     () => false,
   );
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(!supabase);
 
@@ -398,6 +408,10 @@ export function AegisApp() {
         setToast("No model available. Check Settings.");
         return;
       }
+      if (!navigator.onLine) {
+        setToast("You're offline. Reconnect to send.");
+        return;
+      }
       stickToBottom.current = true;
       let conv = conversations.find((c) => c.id === activeId) ?? null;
       const now = nowIso();
@@ -629,6 +643,18 @@ export function AegisApp() {
             <IconPlus />
           </button>
         </header>
+
+        {!online && (
+          <div className="mx-auto mb-2 w-full max-w-3xl px-4">
+            <div
+              className="rounded-2xl border border-line bg-surface-2 px-4 py-2.5 text-sm text-muted"
+              role="status"
+              data-testid="offline-banner"
+            >
+              You&apos;re offline. Saved chats on this device are still readable; sending resumes when you reconnect.
+            </div>
+          </div>
+        )}
 
         {apiError && (
           <div className="mx-auto mb-2 w-full max-w-3xl px-4">
