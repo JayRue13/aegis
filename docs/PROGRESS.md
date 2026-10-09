@@ -2,6 +2,18 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: v0.2, documents, learned memory, export
+
+**Built**
+- PDF and Word (.docx) attachments: server-side text extraction (`/api/extract`, unpdf + mammoth), magic-byte checks, 4 MB limit, page markers.
+- Automatic memory: after a reply, if the user shared something personal, one short call to the same model extracts up to 3 lasting facts, de-duplicated against existing memories (`/api/memory/extract`). Toggle in Settings.
+- Download any chat as Markdown.
+- Browser tests now also run against a fake OpenAI-compatible provider, so the real provider path (not just demo mode) is tested end to end.
+
+**Verified**
+- 52 unit tests pass (new: PDF/DOCX extraction on generated files, fact parsing and de-duplication, Markdown export).
+- 14 browser tests pass on desktop and mobile (new: PDF upload becomes context, fake PDF rejected with a clear message, provider streaming + memory injection + automatic learning).
+
 ## 2026-10-09: v0.1.0, cloud chat MVP built from scratch
 
 **Context.** Audit found no existing AEGIS code (GitHub had only `bidforge` and `my-first-repo`; Replit/PC code not reachable). Jay approved starting fresh with a custom app.

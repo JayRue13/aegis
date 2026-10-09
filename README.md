@@ -9,13 +9,13 @@ A personal AI platform: streaming chat across multiple free model providers, per
 - **Chat** with streaming replies, Markdown, syntax-highlighted code with copy buttons, stop, regenerate and edit-and-resend.
 - **Model picker** across OpenRouter (free models), Google Gemini, Groq, your own Ollama, or any OpenAI-compatible endpoint. Keys stay on the server.
 - **Offline demo model** so the app works before any key is added.
-- **Memory**: say “remember that …” or add facts in the Memory panel; the most relevant ones are added to each conversation.
+- **Memory**: say “remember that …”, add facts in the Memory panel, or let AEGIS learn lasting facts automatically (toggle in Settings). The most relevant ones are added to each conversation.
 - **Workspaces** with their own instructions (like project folders).
-- **Attachments**: text and code files are added as context; images go to vision models.
+- **Attachments**: PDF, Word (.docx), text and code files are read and added as context; images go to vision models.
 - **History**: conversations grouped by date, pin, rename, delete, full-text search.
 - **Accounts (optional)**: Supabase email sign-in, synced history, row-level security, invite list.
 - **Protection**: shared access code mode, per-user rate limiting, production lock when no sign-in is configured.
-- **Your data**: JSON export and import, copy guest chats into your account.
+- **Your data**: JSON export and import, per-chat Markdown download, copy guest chats into your account.
 - Dark and light themes, mobile layout, installable PWA, security headers.
 
 ## Quick start

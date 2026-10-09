@@ -77,6 +77,24 @@ export function isTextFile(file: { name: string; type: string }): boolean {
   );
 }
 
+export function isDocumentFile(file: { name: string; type: string }): boolean {
+  return /\.(pdf|docx)$/i.test(file.name) || file.type === "application/pdf" || /wordprocessingml/.test(file.type);
+}
+
+/** Uploads a PDF/DOCX to the server for text extraction. */
+export async function extractDocument(
+  file: File,
+  headers: Record<string, string>,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ name: string; text: string; pages?: number }> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetchImpl("/api/extract", { method: "POST", body: form, headers });
+  const body = (await res.json().catch(() => ({}))) as { name?: string; text?: string; pages?: number; error?: string };
+  if (!res.ok || !body.text) throw new Error(body.error ?? `Couldn't read ${file.name}`);
+  return { name: body.name ?? file.name, text: body.text, pages: body.pages };
+}
+
 export function isImageFile(file: { type: string }): boolean {
   return /^image\/(png|jpe?g|webp|gif)$/.test(file.type);
 }

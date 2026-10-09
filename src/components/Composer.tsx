@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FileContext, ImagePart, ModelInfo } from "@/lib/types";
-import { imageToDataUrl, isImageFile, isTextFile } from "@/lib/chat-client";
+import { imageToDataUrl, isDocumentFile, isImageFile, isTextFile } from "@/lib/chat-client";
 import { IconClip, IconFile, IconSend, IconStop, IconX } from "./Icons";
 import { ModelPicker } from "./ModelPicker";
 import { cn } from "@/lib/util";
@@ -24,6 +24,7 @@ export function Composer({
   onModelChange,
   disabled,
   autoFocusKey,
+  onExtract,
 }: {
   onSend: (input: ComposerSubmit) => void;
   onStop: () => void;
@@ -33,12 +34,14 @@ export function Composer({
   onModelChange: (id: string) => void;
   disabled?: boolean;
   autoFocusKey?: string | null;
+  onExtract: (file: File) => Promise<FileContext>;
 }) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<ImagePart[]>([]);
   const [files, setFiles] = useState<FileContext[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [reading, setReading] = useState(0);
   const ta = useRef<HTMLTextAreaElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const supportsVision = models.find((m) => m.id === model)?.vision ?? false;
@@ -68,19 +71,33 @@ export function Composer({
         } catch {
           setNotice(`Couldn't read ${f.name}.`);
         }
+      } else if (isDocumentFile(f)) {
+        if (f.size > 4 * 1024 * 1024) {
+          setNotice(`${f.name} is larger than 4 MB.`);
+          continue;
+        }
+        setReading((n) => n + 1);
+        try {
+          const doc = await onExtract(f);
+          setFiles((prev) => [...prev, doc].slice(0, 10));
+        } catch (err) {
+          setNotice((err as Error).message);
+        } finally {
+          setReading((n) => n - 1);
+        }
       } else if (isTextFile(f)) {
         const content = await f.text();
         if (content.length > MAX_TEXT_FILE) setNotice(`${f.name} is large; only the first part will be used.`);
         setFiles((prev) => [...prev, { name: f.name, text: content.slice(0, MAX_TEXT_FILE) }].slice(0, 10));
       } else {
-        setNotice(`${f.name}: only text, code and image files are supported for now.`);
+        setNotice(`${f.name}: supported files are PDF, Word, text, code and images.`);
       }
     }
   }
 
   function submit() {
     const trimmed = text.trim();
-    if ((!trimmed && images.length === 0 && files.length === 0) || streaming || disabled) return;
+    if ((!trimmed && images.length === 0 && files.length === 0) || streaming || disabled || reading > 0) return;
     onSend({ text: trimmed, images, files });
     setText("");
     setImages([]);
@@ -88,7 +105,7 @@ export function Composer({
     setNotice(null);
   }
 
-  const canSend = !disabled && (text.trim().length > 0 || images.length > 0 || files.length > 0);
+  const canSend = !disabled && reading === 0 && (text.trim().length > 0 || images.length > 0 || files.length > 0);
 
   return (
     <div
@@ -107,7 +124,7 @@ export function Composer({
         if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
       }}
     >
-      {(images.length > 0 || files.length > 0) && (
+      {(images.length > 0 || files.length > 0 || reading > 0) && (
         <div className="flex flex-wrap gap-2 px-4 pt-3">
           {images.map((img, i) => (
             <div key={i} className="group relative">
@@ -130,6 +147,11 @@ export function Composer({
               <RemoveChip onClick={() => setFiles((p) => p.filter((_, j) => j !== i))} />
             </div>
           ))}
+          {reading > 0 && (
+            <div className="flex items-center gap-1.5 rounded-xl border border-dashed border-line px-2.5 py-2 text-xs text-faint">
+              Reading document…
+            </div>
+          )}
         </div>
       )}
       {images.length > 0 && !supportsVision && (
@@ -166,7 +188,7 @@ export function Composer({
             onClick={() => fileInput.current?.click()}
             className="rounded-lg p-2 text-muted transition hover:bg-surface-2 hover:text-fg"
             aria-label="Attach files"
-            title="Attach text, code or image files"
+            title="Attach PDF, Word, text, code or image files"
           >
             <IconClip />
           </button>

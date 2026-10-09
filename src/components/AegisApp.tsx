@@ -8,7 +8,7 @@ import { exportAll, importAll, type Backup } from "@/lib/store/types";
 import { LocalStore } from "@/lib/store/local";
 import { SupabaseStore } from "@/lib/store/supabase";
 import { getSupabase } from "@/lib/supabase-client";
-import { ChatRequestError, streamChat } from "@/lib/chat-client";
+import { ChatRequestError, extractDocument, streamChat } from "@/lib/chat-client";
 import { extractRememberRequest } from "@/lib/memory";
 import { cn, deriveTitle, nowIso, uid } from "@/lib/util";
 import { Sidebar } from "./Sidebar";
@@ -18,13 +18,16 @@ import { MemoryPanel } from "./MemoryPanel";
 import { ProjectDialog } from "./ProjectDialog";
 import { SettingsPanel, type Health, type Theme } from "./SettingsPanel";
 import { Logo } from "./Logo";
-import { IconMenu, IconPlus } from "./Icons";
+import { IconDownload, IconMenu, IconPlus } from "./Icons";
+import { conversationToMarkdown, safeFilename } from "@/lib/export";
+import { worthLearning } from "@/lib/learn";
 
 const PREF = {
   model: "aegis:model",
   theme: "aegis:theme",
   name: "aegis:name",
   code: "aegis:access-code",
+  learn: "aegis:learn",
 };
 
 function readPref(key: string, fallback = ""): string {
@@ -102,6 +105,7 @@ export function AegisApp() {
   const [theme, setTheme] = useState<Theme>(() => (readPref(PREF.theme) as Theme) || "system");
   const [userName, setUserName] = useState(() => readPref(PREF.name));
   const [accessCode, setAccessCode] = useState(() => readPref(PREF.code));
+  const [learn, setLearn] = useState(() => readPref(PREF.learn, "on") !== "off");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
@@ -268,6 +272,28 @@ export function AegisApp() {
     return () => window.removeEventListener("keydown", onKey);
   }, [newChat]);
 
+  // Background: ask the model for durable facts about the user and save them.
+  const learnFrom = useCallback(
+    (userText: string, assistantText: string) => {
+      if (!store || !model) return;
+      fetch("/api/memory/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ model, userText, assistantText, existing: memories.map((m) => m.content) }),
+      })
+        .then((r) => (r.ok ? r.json() : { facts: [] }))
+        .then(async ({ facts }: { facts: string[] }) => {
+          if (!facts?.length) return;
+          const created = facts.map((content) => ({ id: uid(), content, createdAt: nowIso() }));
+          for (const m of created) await store.saveMemory(m);
+          setMemories((prev) => [...created, ...prev]);
+          setToast(created.length === 1 ? `Learned: “${created[0].content}”` : `Learned ${created.length} new things`);
+        })
+        .catch(() => {});
+    },
+    [store, model, memories, authHeaders],
+  );
+
   const runCompletion = useCallback(
     async (conv: Conversation, history: ChatMessage[]) => {
       if (!store || !model) return;
@@ -320,6 +346,10 @@ export function AegisApp() {
       }
 
       setMessages((prev) => prev.map((m) => (m.id === assistant.id ? final : m)));
+      const lastUser = [...history].reverse().find((m) => m.role === "user");
+      if (learn && !final.error && text && lastUser && !model.startsWith("demo:") && worthLearning(lastUser.content)) {
+        learnFrom(lastUser.content, text);
+      }
       try {
         await store.saveMessage(conv.id, final);
         const updated = { ...conv, model, updatedAt: nowIso() };
@@ -329,7 +359,7 @@ export function AegisApp() {
         setToast(`Couldn't save reply: ${(err as Error).message}`);
       }
     },
-    [store, model, projects, memories, userName, authHeaders],
+    [store, model, projects, memories, userName, authHeaders, learn, learnFrom],
   );
 
   const addMemory = useCallback(
@@ -525,6 +555,23 @@ export function AegisApp() {
             </h1>
             {activeProject && activeConv && <p className="truncate text-xs text-faint">{activeProject.name}</p>}
           </div>
+          {activeConv && messages.length > 0 && !streamingId && (
+            <button
+              className="rounded-lg p-2 text-muted transition hover:bg-surface-2 hover:text-fg"
+              aria-label="Download chat as Markdown"
+              title="Download chat as Markdown"
+              onClick={() => {
+                const blob = new Blob([conversationToMarkdown(activeConv, messages)], { type: "text/markdown" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `${safeFilename(activeConv.title)}.md`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+              }}
+            >
+              <IconDownload />
+            </button>
+          )}
           <button
             className="rounded-lg p-2 text-muted hover:bg-surface-2 md:hidden"
             onClick={newChat}
@@ -615,6 +662,10 @@ export function AegisApp() {
             }}
             disabled={!store}
             autoFocusKey={activeId}
+            onExtract={async (file) => {
+              const doc = await extractDocument(file, authHeaders());
+              return { name: doc.pages ? `${doc.name} (${doc.pages} pages)` : doc.name, text: doc.text };
+            }}
           />
           <p className="py-2 text-center text-[11px] text-faint">
             AEGIS can make mistakes. Check important information.
@@ -704,6 +755,11 @@ export function AegisApp() {
           }}
           theme={theme}
           onTheme={setTheme}
+          learn={learn}
+          onLearn={(on) => {
+            setLearn(on);
+            writePref(PREF.learn, on ? "on" : "off");
+          }}
           onExport={async () => {
             if (!store) return;
             const data = await exportAll(store);

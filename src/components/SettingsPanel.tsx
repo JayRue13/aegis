@@ -29,6 +29,8 @@ export function SettingsPanel({
   onUserName,
   theme,
   onTheme,
+  learn,
+  onLearn,
   onExport,
   onImport,
   onClose,
@@ -47,6 +49,8 @@ export function SettingsPanel({
   onUserName: (name: string) => void;
   theme: Theme;
   onTheme: (t: Theme) => void;
+  learn: boolean;
+  onLearn: (on: boolean) => void;
   onExport: () => void;
   onImport: (file: File) => Promise<string>;
   onClose: () => void;
@@ -171,6 +175,25 @@ export function SettingsPanel({
           </div>
         </Section>
 
+        <Section title="Memory">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="block text-sm">Learn from conversations</span>
+              <span className="block text-xs text-faint">
+                When you share something about yourself, AEGIS saves lasting facts to Memory. Uses one short extra model
+                call. You can review and delete memories anytime.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={learn}
+              onChange={(e) => onLearn(e.target.checked)}
+              className="mt-1 h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-surface-3 transition before:block before:h-4 before:w-4 before:translate-x-0.5 before:rounded-full before:bg-fg before:transition checked:bg-accent checked:before:translate-x-[18px]"
+            />
+          </label>
+        </Section>
+
         <Section title="Your data" hint="Export everything as JSON, or import a backup.">
           <div className="flex flex-wrap gap-2">
             <button className={`${buttonClass} border border-line hover:bg-surface-2`} onClick={onExport}>
@@ -208,7 +231,7 @@ export function SettingsPanel({
                   {
                     supabase: "Supabase accounts",
                     "access-code": "Shared access code",
-                    open: "Open (development)",
+                    open: "Open (no sign-in)",
                     locked: "Locked: configure sign-in",
                   }[health.auth]
                 }

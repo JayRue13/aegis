@@ -20,16 +20,17 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 ## Milestone 2: Memory and workspaces 🔨
 - ✅ Manual and “remember that …” memories, relevance-ranked injection
 - ✅ Workspaces with instructions; conversation search
-- ⏳ Automatic memory extraction after conversations (opt-in, uses a small free model)
+- ✅ Automatic memory extraction (on by default, toggle in Settings; runs only when the user shares something personal)
 - ⏳ pgvector embeddings for memory + chat search (Gemini free embeddings)
 - 💤 Memory editing and categories
 
 ## Milestone 3: Files and multimodal 🔨
 - ✅ Text/code file context, image input for vision models
-- ⏳ PDF and DOCX text extraction
+- ✅ PDF and DOCX text extraction
 - ⏳ Images and files in Supabase Storage (instead of names only)
 - ⏳ Workspace knowledge files with retrieval
-- 💤 Export a chat or answer as Markdown/PDF/DOCX; voice input/output
+- ✅ Download a chat as Markdown
+- 💤 Export as PDF/DOCX; voice input/output
 
 ## Milestone 4: Agents and tools ⏳
 - Tool-calling framework in the gateway
