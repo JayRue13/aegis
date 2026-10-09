@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* AEGIS design tokens. Dark is the signature theme; light follows the OS
+/* AEGIS design tokens (PLACEHOLDER palette until final brand assets are provided). Dark is the signature theme; light follows the OS
    unless the user picks one in Settings (data-theme on <html>). */
 :root {
   --bg: #07080d;

@@ -2,6 +2,8 @@
 
 A personal AI platform: streaming chat across multiple free model providers, persistent memory, workspaces, file and image attachments, and optional accounts with cross-device sync. Runs in any browser and installs on phones and desktops as an app (PWA).
 
+> Branding (logo, colours) is a placeholder until the final AEGIS assets are added.
+
 **Cost to run: $0/month** on free tiers (Vercel Hobby + Supabase Free + free model APIs).
 
 ## Features (v0.1)
@@ -39,6 +41,8 @@ With no keys, AEGIS runs in demo mode. Add `GEMINI_API_KEY`, `GROQ_API_KEY` or `
 
 ## Docs
 
+- [Audit](docs/AUDIT.md)
+- [Changelog](CHANGELOG.md)
 - [Deployment guide](docs/DEPLOYMENT.md): Vercel + Supabase, step by step
 - [Architecture](docs/ARCHITECTURE.md)
 - [Decisions log](docs/DECISIONS.md)

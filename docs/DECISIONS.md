@@ -2,8 +2,11 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
-## 2026-10-09: Start a fresh codebase
-No existing AEGIS code was reachable (GitHub had only unrelated repos; Replit and PC code not accessible). Started fresh; any older code can be merged in later.
+## 2026-10-09: Placeholder branding
+No final logo or palette files were available. The star mark and colour tokens are placeholders inspired by the described direction (symmetrical, fluid, star-like, subtle accents), isolated so final assets replace them in one place. See docs/AUDIT.md.
+
+## 2026-10-09: Start a fresh codebase (provisional until Replit is inventoried)
+No existing AEGIS code was reachable from this session (GitHub had only unrelated repos; Replit was connected after the session started). Jay asked for decisions to be made while he slept, so this repo was built as a working baseline. **When the Replit app is inventoried:** if it is a sensible, working AEGIS app, import it as a tagged baseline and decide per feature whether to port it here or move this work onto its stack. The deciding factor is what already works, not which is newer.
 
 ## 2026-10-09: Custom Next.js app instead of hosting Open WebUI
 Only a custom app delivers the distinctive design, branding and multi-user product AEGIS aims for. Open WebUI also needs an always-on server. Ollama/Open WebUI remain usable as a model backend through `OLLAMA_BASE_URL`.

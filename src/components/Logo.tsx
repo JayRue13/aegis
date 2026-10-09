@@ -1,3 +1,4 @@
+// PLACEHOLDER mark until the final AEGIS logo assets are provided (see docs/AUDIT.md).
 import { useId } from "react";
 
 /** The AEGIS mark: a symmetrical, fluid four-point star over a faint diagonal echo. */
