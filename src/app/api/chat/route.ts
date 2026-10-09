@@ -3,7 +3,8 @@ import { GatewayError, streamCompletion, toEventStream } from "@/lib/server/gate
 import { chatRequestSchema } from "@/lib/server/schema";
 import { buildSystemPrompt, toProviderMessages } from "@/lib/prompt";
 import { selectMemories } from "@/lib/memory";
-import type { ChatMessage } from "@/lib/types";
+import { fetchPage, findUrls } from "@/lib/server/webfetch";
+import type { ChatMessage, ChatStreamEvent, SourceRef } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -30,8 +31,22 @@ export async function POST(req: Request) {
   if (!parsed.success) return json(400, `Invalid request: ${parsed.error.issues[0]?.message ?? "bad input"}`);
   const input = parsed.data;
 
-  const history = input.messages as ChatMessage[];
+  let history = input.messages as ChatMessage[];
   const lastUser = [...history].reverse().find((m) => m.role === "user");
+
+  // Read pages the user linked to in this message and add them as context.
+  let sources: SourceRef[] = [];
+  if (lastUser && process.env.AEGIS_LINK_READER !== "false") {
+    const urls = findUrls(lastUser.content);
+    if (urls.length) {
+      const pages = await Promise.all(urls.map((u) => fetchPage(u)));
+      sources = pages.map(({ url, ok, title, error }) => ({ url, ok, title, error }));
+      const files = pages.filter((p) => p.ok && p.text).map((p) => ({ name: `${p.title} (${p.url})`, text: p.text! }));
+      if (files.length) {
+        history = history.map((m) => (m === lastUser ? { ...m, files: [...(m.files ?? []), ...files] } : m));
+      }
+    }
+  }
   const memories = selectMemories(input.memories ?? [], lastUser?.content ?? "");
   const system = buildSystemPrompt({
     memories,
@@ -62,7 +77,8 @@ export async function POST(req: Request) {
     yield* gen;
   }
 
-  return new Response(toEventStream(replay()), {
+  const preamble: ChatStreamEvent[] = sources.length ? [{ type: "sources", sources }] : [];
+  return new Response(toEventStream(replay(), preamble), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",
       "Cache-Control": "no-store",

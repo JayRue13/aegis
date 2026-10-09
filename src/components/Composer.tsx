@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { FileContext, ImagePart, ModelInfo } from "@/lib/types";
 import { imageToDataUrl, isDocumentFile, isImageFile, isTextFile } from "@/lib/chat-client";
-import { IconClip, IconFile, IconSend, IconStop, IconX } from "./Icons";
+import { IconClip, IconFile, IconMic, IconSend, IconStop, IconX } from "./Icons";
+import { useSpeech } from "./useSpeech";
 import { ModelPicker } from "./ModelPicker";
 import { cn } from "@/lib/util";
 
@@ -44,6 +45,7 @@ export function Composer({
   const [reading, setReading] = useState(0);
   const ta = useRef<HTMLTextAreaElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const speech = useSpeech((t) => setText((prev) => (prev ? `${prev.trimEnd()} ${t}` : t)));
   const supportsVision = models.find((m) => m.id === model)?.vision ?? false;
 
   useEffect(() => {
@@ -204,28 +206,50 @@ export function Composer({
           />
           <ModelPicker models={models} value={model} onChange={onModelChange} disabled={streaming} />
         </div>
-        {streaming ? (
-          <button
-            type="button"
-            onClick={onStop}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-fg text-bg transition hover:opacity-85"
-            aria-label="Stop generating"
-          >
-            <IconStop width={16} height={16} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={!canSend}
-            className="btn-accent flex h-9 w-9 items-center justify-center rounded-full transition hover:brightness-110 disabled:opacity-35"
-            aria-label="Send message"
-          >
-            <IconSend width={17} height={17} />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {speech.supported && !streaming && (
+            <button
+              type="button"
+              onClick={speech.listening ? speech.stop : speech.start}
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-full transition",
+                speech.listening
+                  ? "bg-danger/15 text-danger animate-pulse"
+                  : "text-muted hover:bg-surface-2 hover:text-fg",
+              )}
+              aria-label={speech.listening ? "Stop voice input" : "Voice input"}
+              title={speech.listening ? "Stop voice input" : "Speak your message"}
+            >
+              <IconMic />
+            </button>
+          )}
+          {streaming ? (
+            <button
+              type="button"
+              onClick={onStop}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-fg text-bg transition hover:opacity-85"
+              aria-label="Stop generating"
+            >
+              <IconStop width={16} height={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!canSend}
+              className="btn-accent flex h-9 w-9 items-center justify-center rounded-full transition hover:brightness-110 disabled:opacity-35"
+              aria-label="Send message"
+            >
+              <IconSend width={17} height={17} />
+            </button>
+          )}
+        </div>
       </div>
-      {notice && <p className="px-5 pb-3 text-xs text-muted">{notice}</p>}
+      {(notice || speech.error || speech.interim) && (
+        <p className="px-5 pb-3 text-xs text-muted">
+          {speech.interim ? `🎙 ${speech.interim}` : (speech.error ?? notice)}
+        </p>
+      )}
     </div>
   );
 }

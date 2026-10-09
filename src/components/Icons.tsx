@@ -126,3 +126,9 @@ export const IconDownload = (p: P) => (
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </Base>
 );
+export const IconMic = (p: P) => (
+  <Base {...p}>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+  </Base>
+);

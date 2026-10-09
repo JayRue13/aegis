@@ -25,6 +25,15 @@ export interface ChatMessage {
   model?: string;
   createdAt: string;
   error?: boolean;
+  /** Web pages read for this reply. */
+  sources?: SourceRef[];
+}
+
+export interface SourceRef {
+  url: string;
+  title?: string;
+  ok: boolean;
+  error?: string;
 }
 
 export interface Conversation {
@@ -59,4 +68,8 @@ export interface ModelInfo {
 }
 
 /** Events streamed from /api/chat as newline-delimited JSON. */
-export type ChatStreamEvent = { type: "delta"; text: string } | { type: "error"; message: string } | { type: "done" };
+export type ChatStreamEvent =
+  | { type: "delta"; text: string }
+  | { type: "sources"; sources: SourceRef[] }
+  | { type: "error"; message: string }
+  | { type: "done" };

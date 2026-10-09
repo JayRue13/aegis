@@ -1,6 +1,6 @@
 // Browser side of /api/chat: sends the request and reads NDJSON events.
 
-import type { ChatStreamEvent } from "./types";
+import type { ChatStreamEvent, SourceRef } from "./types";
 
 /** Splits a growing NDJSON buffer into complete events plus the remainder. */
 export function parseNdjson(buffer: string): { events: ChatStreamEvent[]; rest: string } {
@@ -35,6 +35,7 @@ export async function streamChat(
   onDelta: (text: string) => void,
   signal?: AbortSignal,
   fetchImpl: typeof fetch = fetch,
+  onSources?: (sources: SourceRef[]) => void,
 ): Promise<void> {
   const res = await fetchImpl("/api/chat", {
     method: "POST",
@@ -60,6 +61,7 @@ export async function streamChat(
     buffer = rest;
     for (const e of events) {
       if (e.type === "delta") onDelta(e.text);
+      else if (e.type === "sources") onSources?.(e.sources);
       else if (e.type === "error") throw new ChatRequestError(e.message, 502);
       else if (e.type === "done") return;
     }

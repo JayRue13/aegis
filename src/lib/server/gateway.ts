@@ -90,12 +90,16 @@ export function describeHttpError(label: string, status: number, body: string): 
 }
 
 /** Converts a delta generator into an NDJSON byte stream for the browser. */
-export function toEventStream(gen: AsyncGenerator<string>): ReadableStream<Uint8Array> {
+export function toEventStream(
+  gen: AsyncGenerator<string>,
+  preamble: ChatStreamEvent[] = [],
+): ReadableStream<Uint8Array> {
   const enc = new TextEncoder();
   const send = (c: ReadableStreamDefaultController<Uint8Array>, e: ChatStreamEvent) =>
     c.enqueue(enc.encode(JSON.stringify(e) + "\n"));
   return new ReadableStream({
     async start(controller) {
+      for (const e of preamble) send(controller, e);
       try {
         for await (const text of gen) send(controller, { type: "delta", text });
         send(controller, { type: "done" });

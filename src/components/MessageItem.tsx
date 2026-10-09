@@ -124,6 +124,29 @@ export function MessageItem({
         <Logo size={24} animated={streaming && !message.content} />
       </div>
       <div className="min-w-0 flex-1">
+        {message.sources && message.sources.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5" data-testid="sources">
+            {message.sources.map((src) => (
+              <a
+                key={src.url}
+                href={src.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={src.ok ? src.url : `${src.url}: ${src.error}`}
+                className={cn(
+                  "flex max-w-64 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition hover:bg-surface-2",
+                  src.ok
+                    ? "border-line text-muted"
+                    : "border-danger/30 text-danger/80 line-through decoration-danger/40",
+                )}
+              >
+                <span className="truncate">
+                  {src.ok ? `Read: ${src.title ?? new URL(src.url).hostname}` : new URL(src.url).hostname}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
         {message.error ? (
           <div className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">
             {message.content}

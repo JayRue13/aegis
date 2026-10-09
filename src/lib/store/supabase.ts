@@ -62,7 +62,12 @@ export class SupabaseStore implements ChatStore {
         .order("created_at", { ascending: true }),
     );
     return rows.map((r) => {
-      const att = (r.attachments as { files?: ChatMessage["files"]; images?: ChatMessage["images"] }) ?? {};
+      const att =
+        (r.attachments as {
+          files?: ChatMessage["files"];
+          images?: ChatMessage["images"];
+          sources?: ChatMessage["sources"];
+        }) ?? {};
       return {
         id: r.id as string,
         role: r.role as ChatMessage["role"],
@@ -71,6 +76,7 @@ export class SupabaseStore implements ChatStore {
         error: Boolean(r.error) || undefined,
         files: att.files,
         images: att.images,
+        sources: att.sources,
         createdAt: r.created_at as string,
       };
     });
@@ -89,7 +95,7 @@ export class SupabaseStore implements ChatStore {
         content: m.content,
         model: m.model ?? null,
         error: m.error ?? false,
-        attachments: { files: m.files, images },
+        attachments: { files: m.files, images, sources: m.sources },
         created_at: m.createdAt,
       }),
     );

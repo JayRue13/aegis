@@ -312,6 +312,7 @@ export function AegisApp() {
       };
 
       let final: ChatMessage = assistant;
+      let sources: ChatMessage["sources"];
       try {
         await streamChat(
           {
@@ -327,15 +328,20 @@ export function AegisApp() {
             if (!frame) frame = requestAnimationFrame(flush);
           },
           controller.signal,
+          undefined,
+          (s) => {
+            sources = s;
+            setMessages((prev) => prev.map((m) => (m.id === assistant.id ? { ...m, sources: s } : m)));
+          },
         );
-        final = { ...assistant, content: text || "_(empty response)_" };
+        final = { ...assistant, content: text || "_(empty response)_", sources };
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          final = { ...assistant, content: text || "_(stopped)_" };
+          final = { ...assistant, content: text || "_(stopped)_", sources };
         } else {
           const msg = err instanceof ChatRequestError ? err.message : `Something went wrong: ${(err as Error).message}`;
           final = text
-            ? { ...assistant, content: `${text}\n\n_(interrupted: ${msg})_` }
+            ? { ...assistant, content: `${text}\n\n_(interrupted: ${msg})_`, sources }
             : { ...assistant, content: msg, error: true };
           if (err instanceof ChatRequestError && (err.status === 401 || err.status === 403)) setApiError(msg);
         }

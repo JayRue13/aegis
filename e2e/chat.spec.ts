@@ -99,3 +99,39 @@ test("real provider path: streams, uses memory and learns new facts", async ({ p
   await page.getByRole("button", { name: "Memory" }).click();
   await expect(page.getByTestId("memory-list")).toContainText("User is training to be a pilot");
 });
+
+test("link reader refuses private addresses and shows it", async ({ page }) => {
+  await page.goto("/");
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("Summarize http://127.0.0.1:3199/v1/health please");
+  await box.press("Enter");
+  const sources = page.getByTestId("sources");
+  await expect(sources).toContainText("127.0.0.1");
+  await expect(sources.locator("a")).toHaveAttribute("title", /Private addresses are not fetched/);
+});
+
+test("voice input fills the message box", async ({ page }) => {
+  await page.addInitScript(() => {
+    class FakeRecognition {
+      lang = "";
+      continuous = false;
+      interimResults = false;
+      onresult: ((e: unknown) => void) | null = null;
+      onend: (() => void) | null = null;
+      onerror: ((e: unknown) => void) | null = null;
+      start() {
+        setTimeout(() => {
+          this.onresult?.({ resultIndex: 0, results: [{ isFinal: true, 0: { transcript: "plan my study week" } }] });
+          this.onend?.();
+        }, 50);
+      }
+      stop() {
+        this.onend?.();
+      }
+    }
+    (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition = FakeRecognition;
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Voice input" }).click();
+  await expect(page.getByRole("textbox", { name: "Message" })).toHaveValue("plan my study week");
+});
