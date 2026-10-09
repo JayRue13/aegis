@@ -19,7 +19,6 @@ Labels: **Observed** (checked directly) · **Inferred** (reasoned from evidence)
 - **Inferred:** The first likely cost is sharing AEGIS with many users. That means heavier model usage, or Supabase Pro at $25/month. Nothing gets paid for without Jay's approval.
 
 ## Risks
-- **Observed:** Images are stored only by name in Supabase, to protect the free database quota. Moving them to Supabase Storage is still to do.
 - **Inferred:** Free-tier rate limits will throttle heavy use. The model picker lets you switch providers when that happens.
 - **Inferred:** If the Replit app turns out to be more complete in some area, the two codebases will need reconciling. See DECISIONS.md.
 

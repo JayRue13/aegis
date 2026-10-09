@@ -4,8 +4,10 @@ export type Role = "system" | "user" | "assistant";
 
 export interface ImagePart {
   type: "image";
-  /** data: URL (base64) of the image. */
+  /** data: URL (base64) of the image, or a short-lived signed https URL for stored images. */
   dataUrl: string;
+  /** Path in the Supabase "attachments" bucket when the image is stored in the cloud. */
+  path?: string;
   name?: string;
 }
 

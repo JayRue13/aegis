@@ -2,6 +2,15 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-09: Continue the new app instead of the Replit app
+Jay chose to keep building the free, self-contained app rather than depend on Replit. Reviewing the old Replit app for prompts, features or the logo is optional and still to do.
+
+## 2026-10-09: Link reader runs on the server with SSRF protection
+Fetching on the server avoids browser CORS problems and costs nothing. To keep a public deployment from being used to probe private networks, it only allows http(s), checks every resolved IP at connect time (undici custom lookup), and limits redirects, size and time. It can be turned off with `AEGIS_LINK_READER=false`.
+
+## 2026-10-09: Images in Supabase Storage
+Replaces the earlier names-only approach. Images go in a private bucket under `<user>/<conversation>/` and are shown through one-hour signed URLs. Storage policies are tested in `supabase/tests/20_storage_test.sql`.
+
 ## 2026-10-09: Placeholder branding
 No final logo or palette files were available. The star mark and colour tokens are placeholders inspired by the described direction (symmetrical, fluid, star-like, subtle accents), isolated so final assets replace them in one place. See docs/AUDIT.md.
 
@@ -25,9 +34,6 @@ Signed-in users write to Supabase directly under RLS; the server only proxies mo
 
 ## 2026-10-09: Keyword memory retrieval first
 No embedding API cost or extra infrastructure. Swap for pgvector embeddings when memory counts grow.
-
-## 2026-10-09: Images stored as names only in Supabase
-Base64 images would exhaust the 500 MB free database. Moving images to Supabase Storage is on the roadmap. Guest mode keeps images locally until storage fills, then drops image data.
 
 ## Open (needs Jay)
 - Licence (MIT vs AGPL vs keep private).

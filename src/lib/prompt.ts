@@ -72,18 +72,19 @@ export function toProviderMessages(
   const out: OpenAIMessage[] = [{ role: "system", content: system }];
   recent.forEach((m, i) => {
     const text = withFiles(m);
-    if (m.role === "user" && m.images && m.images.length > 0) {
+    const images = m.images?.filter((img) => img.dataUrl);
+    if (m.role === "user" && images && images.length > 0) {
       if (i === lastUserIdx) {
         out.push({
           role: "user",
           content: [
             { type: "text", text: text || "Describe this image." },
-            ...m.images.map((img) => ({ type: "image_url" as const, image_url: { url: img.dataUrl } })),
+            ...images.map((img) => ({ type: "image_url" as const, image_url: { url: img.dataUrl } })),
           ],
         });
         return;
       }
-      out.push({ role: "user", content: `${text}\n[${m.images.length} image(s) attached earlier]` });
+      out.push({ role: "user", content: `${text}\n[${images.length} image(s) attached earlier]` });
       return;
     }
     out.push({ role: m.role as "user" | "assistant", content: text });

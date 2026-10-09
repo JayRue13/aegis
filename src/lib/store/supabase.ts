@@ -7,6 +7,24 @@ import type { ChatStore } from "./types";
 
 type Row = Record<string, unknown>;
 
+const BUCKET = "attachments";
+const SIGNED_URL_SECONDS = 60 * 60;
+
+/** Decodes a base64 data: URL into a Blob for upload. */
+export function dataUrlToBlob(dataUrl: string): Blob {
+  const [head, b64] = dataUrl.split(",", 2);
+  const type = head.match(/^data:([^;]+)/)?.[1] ?? "application/octet-stream";
+  const bin = atob(b64 ?? "");
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type });
+}
+
+function extFor(dataUrl: string): string {
+  const t = dataUrl.match(/^data:image\/([a-z]+)/)?.[1] ?? "bin";
+  return t === "jpeg" ? "jpg" : t;
+}
+
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message);
   return res.data as T;
@@ -51,6 +69,10 @@ export class SupabaseStore implements ChatStore {
 
   async deleteConversation(id: string) {
     check(await this.db.from("conversations").delete().eq("id", id));
+    // Best effort: remove the conversation's stored images.
+    const folder = `${this.userId}/${id}`;
+    const { data } = await this.db.storage.from(BUCKET).list(folder, { limit: 1000 });
+    if (data?.length) await this.db.storage.from(BUCKET).remove(data.map((f) => `${folder}/${f.name}`));
   }
 
   async getMessages(conversationId: string): Promise<ChatMessage[]> {
@@ -61,7 +83,7 @@ export class SupabaseStore implements ChatStore {
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true }),
     );
-    return rows.map((r) => {
+    const messages = rows.map((r) => {
       const att =
         (r.attachments as {
           files?: ChatMessage["files"];
@@ -78,14 +100,37 @@ export class SupabaseStore implements ChatStore {
         images: att.images,
         sources: att.sources,
         createdAt: r.created_at as string,
-      };
+      } as ChatMessage;
     });
+    await this.signImages(messages);
+    return messages;
+  }
+
+  /** Replaces stored image paths with short-lived signed URLs for display. */
+  private async signImages(messages: ChatMessage[]) {
+    const paths = messages.flatMap((m) => m.images?.map((i) => i.path).filter((p): p is string => !!p) ?? []);
+    if (paths.length === 0) return;
+    const { data } = await this.db.storage.from(BUCKET).createSignedUrls(paths, SIGNED_URL_SECONDS);
+    const urls = new Map((data ?? []).map((d) => [d.path, d.signedUrl]));
+    for (const m of messages) {
+      m.images = m.images?.map((i) => (i.path ? { ...i, dataUrl: urls.get(i.path) ?? "" } : i));
+    }
   }
 
   async saveMessage(conversationId: string, m: ChatMessage) {
-    // Images are kept as names only for now so the free 500 MB database is
-    // not consumed by base64 blobs (moving them to Supabase Storage is on the roadmap).
-    const images = m.images?.map((i) => ({ type: "image" as const, dataUrl: "", name: i.name }));
+    // Images go to the private storage bucket; the database keeps only their
+    // path, so the free 500 MB database is not filled with base64 data.
+    const images = await Promise.all(
+      (m.images ?? []).map(async (img, i) => {
+        if (img.path) return { type: "image" as const, dataUrl: "", name: img.name, path: img.path };
+        if (!img.dataUrl.startsWith("data:")) return { type: "image" as const, dataUrl: "", name: img.name };
+        const path = `${this.userId}/${conversationId}/${m.id}-${i}.${extFor(img.dataUrl)}`;
+        const { error } = await this.db.storage
+          .from(BUCKET)
+          .upload(path, dataUrlToBlob(img.dataUrl), { upsert: true, contentType: dataUrlToBlob(img.dataUrl).type });
+        return { type: "image" as const, dataUrl: "", name: img.name, path: error ? undefined : path };
+      }),
+    );
     check(
       await this.db.from("messages").upsert({
         id: m.id,
@@ -95,7 +140,7 @@ export class SupabaseStore implements ChatStore {
         content: m.content,
         model: m.model ?? null,
         error: m.error ?? false,
-        attachments: { files: m.files, images, sources: m.sources },
+        attachments: { files: m.files, images: images.length ? images : undefined, sources: m.sources },
         created_at: m.createdAt,
       }),
     );

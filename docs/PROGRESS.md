@@ -2,6 +2,22 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: v0.3, links, voice, cloud images
+
+Jay chose to continue with this app rather than the Replit one (see DECISIONS.md).
+
+**Built**
+- Link reader. URLs in a message are fetched by the server with SSRF protection, turned into text and added as context. The reply shows chips for the pages read or refused.
+- Voice input using the Web Speech API, with interim transcript display.
+- A private Supabase Storage bucket for images, with signed URLs for display and cleanup when a chat is deleted.
+
+**Verified**
+- 63 unit tests pass. New ones cover private-IP detection (IPv4, IPv6 and mapped addresses), URL finding, HTML to text, fetching and redirects, blocking by IP and by hostname (DNS), and refusing credentials and non-http schemes. Image upload, signing and cleanup are checked against a fake Supabase client.
+- 18 browser tests pass. New ones check that the link reader refuses a private address in the production build and shows why, and that voice input fills the message box.
+- Database tests pass. The storage policies keep each user inside their own folder.
+
+**Not verified:** a real Supabase Storage bucket, and fetching real public websites. The build sandbox has no direct internet access.
+
 ## 2026-10-09: v0.2, documents, learned memory, export
 
 **Built**

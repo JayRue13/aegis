@@ -27,14 +27,16 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 ## Milestone 3: Files and multimodal 🔨
 - ✅ Text/code file context, image input for vision models
 - ✅ PDF and DOCX text extraction
-- ⏳ Images and files in Supabase Storage (instead of names only)
+- ✅ Images in a private Supabase Storage bucket
 - ⏳ Workspace knowledge files with retrieval
 - ✅ Download a chat as Markdown
-- 💤 Export as PDF/DOCX; voice input/output
+- ✅ Voice input (browser speech recognition)
+- 💤 Export as PDF/DOCX; spoken replies
 
 ## Milestone 4: Agents and tools ⏳
 - Tool-calling framework in the gateway
-- Web search (free tier: Brave/Tavily/SearXNG) and URL reader
+- ✅ URL reader (links in a message are fetched with SSRF protection)
+- Web search (free tier: Brave/Tavily/SearXNG)
 - Specialist modes: research, coding, planning
 - 💤 Sandboxed code execution; calendar/email integrations
 

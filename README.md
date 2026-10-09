@@ -14,6 +14,8 @@ A personal AI platform: streaming chat across multiple free model providers, per
 - **Memory**: say “remember that …”, add facts in the Memory panel, or let AEGIS learn lasting facts automatically (toggle in Settings). The most relevant ones are added to each conversation.
 - **Workspaces** with their own instructions (like project folders).
 - **Attachments**: PDF, Word (.docx), text and code files are read and added as context; images go to vision models.
+- **Links**: paste a URL and AEGIS reads the page (private and internal addresses are blocked).
+- **Voice input** with the browser's free speech recognition.
 - **History**: conversations grouped by date, pin, rename, delete, full-text search.
 - **Accounts (optional)**: Supabase email sign-in, synced history, row-level security, invite list.
 - **Protection**: shared access code mode, per-user rate limiting, production lock when no sign-in is configured.
