@@ -2,6 +2,9 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-09: Daily limits counted in Postgres, failing open
+`bump_usage()` is a security-definer function that each user calls with their own token, so the server needs no service-role key and users cannot reset their own count. If the counter is missing or unreachable, chat still works. The limit protects quota; it is not a security boundary.
+
 ## 2026-10-09: Web search through context injection, not tool calling
 Free models support function calling unevenly. AEGIS runs the search on the server when you turn it on (or in Research mode) and passes numbered results to the model as context, so it works with every model. Wikipedia is the default because it needs no key. Real tool calling can be added later for models that support it.
 

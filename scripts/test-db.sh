@@ -12,3 +12,4 @@ for f in "$DIR"/supabase/migrations/*.sql; do $PSQL -f "$f" >/dev/null; done
 for f in "$DIR"/supabase/migrations/*.sql; do $PSQL -f "$f" >/dev/null; done
 $PSQL -f "$DIR/supabase/tests/10_rls_test.sql"
 $PSQL -f "$DIR/supabase/tests/20_storage_test.sql"
+$PSQL -f "$DIR/supabase/tests/30_usage_test.sql"

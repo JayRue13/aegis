@@ -8,7 +8,7 @@ export async function GET() {
   return Response.json(
     {
       status: "ok",
-      version: process.env.npm_package_version ?? "0.4.0",
+      version: process.env.npm_package_version ?? "0.5.0",
       auth: authMode(),
       providers: getProviders().map((p) => p.id),
       demo: demoEnabled(),

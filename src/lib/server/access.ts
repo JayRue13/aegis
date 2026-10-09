@@ -12,7 +12,7 @@ import { demoEnabled } from "./providers";
 type Env = Record<string, string | undefined>;
 
 export type AccessResult =
-  | { ok: true; identity: string; email?: string; userId?: string; mode: AuthMode }
+  | { ok: true; identity: string; email?: string; userId?: string; token?: string; mode: AuthMode }
   | { ok: false; status: number; message: string; mode: AuthMode };
 
 export type AuthMode = "supabase" | "access-code" | "open" | "locked";
@@ -59,7 +59,7 @@ export async function checkAccess(
       if (allow && !allow.includes((user.email ?? "").toLowerCase())) {
         return { ok: false, status: 403, message: "This account is not on the AEGIS invite list.", mode };
       }
-      return { ok: true, identity: `user:${user.id}`, email: user.email, userId: user.id, mode };
+      return { ok: true, identity: `user:${user.id}`, email: user.email, userId: user.id, token, mode };
     } catch {
       return { ok: false, status: 503, message: "Could not verify your session. Try again.", mode };
     }

@@ -1,4 +1,5 @@
 import { checkAccess, rateLimit } from "@/lib/server/access";
+import { checkDailyQuota } from "@/lib/server/quota";
 import { GatewayError, streamCompletion, toEventStream } from "@/lib/server/gateway";
 import { chatRequestSchema } from "@/lib/server/schema";
 import { buildSystemPrompt, toProviderMessages } from "@/lib/prompt";
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
   const perMinute = Number(process.env.AEGIS_RATE_LIMIT_PER_MIN ?? 20);
   if (!rateLimit(access.identity, perMinute)) {
     return json(429, "Too many messages in a minute. Take a breath and try again.");
+  }
+
+  const quota = await checkDailyQuota(access);
+  if (!quota.ok) {
+    return json(429, `You've used today's ${quota.limit} messages. The limit resets at midnight UTC.`);
   }
 
   let body: unknown;

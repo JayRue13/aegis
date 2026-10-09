@@ -46,6 +46,7 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - Realtime sync of open chats across devices
 
 ## Milestone 6: Sharing and polish 💤
-- Per-user quotas and usage dashboard; admin panel; invite flow
+- ✅ Per-user daily message limit (admins exempt)
+- Usage dashboard; admin panel; invite flow
 - Tauri desktop and Capacitor mobile wrappers
 - Accessibility audit, monitoring, backups

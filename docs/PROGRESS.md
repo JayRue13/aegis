@@ -2,6 +2,10 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: v0.5. Per-user daily limits
+- Built: migration `0003_usage.sql` (the `usage_daily` table and `bump_usage()`), `src/lib/server/quota.ts`, and a check in `/api/chat`.
+- Verified: 75 unit tests and 20 browser tests pass. New database tests confirm the counter increments, users can't edit or reset their own counts, and users can't see each other's usage.
+
 ## 2026-10-09: v0.4. Modes, web search, custom instructions, read aloud
 
 **Built**

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.0 (2026-10-09)
+- Optional daily message limit per signed-in user (`AEGIS_DAILY_MESSAGE_LIMIT`), with admins exempt. This protects free model quotas once friends and family use AEGIS.
+
 ## 0.4.0 (2026-10-09)
 - Assistant modes: Chat, Research, Code, Plan and Write.
 - Web search toggle. Research mode always searches and cites sources as [1], [2]. It uses Wikipedia with no key, or SearXNG or Brave if configured.
