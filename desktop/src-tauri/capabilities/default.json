@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The bundled setup page only. Remote AEGIS pages get no native permissions.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

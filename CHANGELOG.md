@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 (2026-10-09)
+- Agent mode: AEGIS can search the web, read pages, calculate exactly and check the date on its own, showing each step it took. Anything that changes your data (saving a memory, creating a workspace) appears as a card you approve or dismiss; nothing is saved without your click. Models that can't use tools fall back to a normal answer.
+- Works offline once installed: the app and your saved chats on this device open without a connection, and a banner says when you're offline.
+- Desktop app (Windows, macOS, Linux) and Android/iOS app shells around your hosted AEGIS, built on demand with the new Apps workflow. See docs/APPS.md.
 - Accessibility: automated WCAG 2.1 AA scans pass in dark and light themes on desktop and mobile. Faint text now has higher contrast. Dialogs take focus, keep Tab inside, and return focus when closed.
 - Security: images in model replies are shown as links instead of being loaded, which blocks data leaks through injected image URLs. Added a strict Content Security Policy, HSTS and COOP. Security notes are in docs/SECURITY.md.
 

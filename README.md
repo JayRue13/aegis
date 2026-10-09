@@ -6,7 +6,7 @@ A personal AI platform: streaming chat across multiple free model providers, per
 
 **Cost to run: $0/month** on free tiers (Vercel Hobby + Supabase Free + free model APIs).
 
-## Features (v0.1)
+## Features (v0.6)
 
 - **Chat** with streaming replies, Markdown, syntax-highlighted code with copy buttons, stop, regenerate and edit-and-resend.
 - **Model picker** across OpenRouter (free models), Google Gemini, Groq, your own Ollama, or any OpenAI-compatible endpoint. Keys stay on the server.
@@ -16,14 +16,16 @@ A personal AI platform: streaming chat across multiple free model providers, per
 - **Attachments**: PDF, Word (.docx), text and code files are read and added as context; images go to vision models.
 - **Links**: paste a URL and AEGIS reads the page (private and internal addresses are blocked).
 - **Voice**: speak your message and have replies read aloud, both handled by the browser at no cost.
-- **Modes**: Chat, Research (searches the web and cites sources), Code, Plan, Write.
+- **Modes**: Chat, Research (searches the web and cites sources), Agent, Code, Plan, Write.
+- **Agent mode**: AEGIS searches, reads pages, calculates and checks the date by itself and shows each step. Changes to your data (memories, workspaces) wait for your Approve.
 - **Web search**: Wikipedia with no key needed, or your own SearXNG or a free Brave key.
 - **Custom instructions** that apply to every chat.
 - **History**: conversations grouped by date, pin, rename, delete, full-text search.
 - **Accounts (optional)**: Supabase email sign-in, synced history, row-level security, invite list.
 - **Protection**: shared access code mode, per-user rate limiting, production lock when no sign-in is configured.
 - **Your data**: JSON export and import, per-chat Markdown download, copy guest chats into your account.
-- Dark and light themes, mobile layout, installable PWA, security headers.
+- Dark and light themes, mobile layout, installable PWA that opens offline, security headers, WCAG 2.1 AA checks.
+- **Desktop and phone apps**: Tauri (Windows/macOS/Linux) and Capacitor (Android/iOS) shells, built on demand in GitHub Actions.
 
 ## Quick start
 
@@ -50,6 +52,7 @@ With no keys, AEGIS runs in demo mode. Add `GEMINI_API_KEY`, `GROQ_API_KEY` or `
 - [Security notes](docs/SECURITY.md)
 - [Changelog](CHANGELOG.md)
 - [Deployment guide](docs/DEPLOYMENT.md): Vercel + Supabase, step by step
+- [Desktop and mobile apps](docs/APPS.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Decisions log](docs/DECISIONS.md)
 - [Roadmap](docs/ROADMAP.md)

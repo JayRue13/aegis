@@ -2,6 +2,12 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-09: Agent tools that change data need approval
+Read-only tools (search, read a page, calculator, date) run automatically. Tools that change the user's data only propose the change; the browser shows an approval card and applies it on Approve. This keeps prompt-injected pages from silently writing memories or creating workspaces. Tools run on the server for at most 5 rounds per reply.
+
+## 2026-10-09: Desktop and mobile apps load the hosted site
+The Tauri (desktop) and Capacitor (Android/iOS) shells open the user's AEGIS deployment instead of bundling a copy, because the app needs its server routes for models and keys. One deployment updates every platform at once, and no native permissions are granted to the remote page. Builds run on demand in GitHub Actions (free minutes) rather than on Jay's PC.
+
 ## 2026-10-09: Daily limits counted in Postgres, failing open
 `bump_usage()` is a security-definer function that each user calls with their own token, so the server needs no service-role key and users cannot reset their own count. If the counter is missing or unreachable, chat still works. The limit protects quota; it is not a security boundary.
 

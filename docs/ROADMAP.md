@@ -34,8 +34,9 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ✅ Read replies aloud
 - 💤 Export as PDF/DOCX
 
-## Milestone 4: Agents and tools ⏳
-- Tool-calling framework in the gateway
+## Milestone 4: Agents and tools 🔨
+- ✅ Tool-calling agent loop (Agent mode) with step trace and approval cards for data changes
+- ✅ Calculator and date/time tools
 - ✅ URL reader (links in a message are fetched with SSRF protection)
 - ✅ Web search (Wikipedia with no key, SearXNG or Brave optional)
 - ✅ Specialist modes: Research, Code, Plan, Write (instruction presets)
@@ -48,5 +49,7 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 ## Milestone 6: Sharing and polish 💤
 - ✅ Per-user daily message limit (admins exempt)
 - Usage dashboard; admin panel; invite flow
-- Tauri desktop and Capacitor mobile wrappers
-- Accessibility audit, monitoring, backups
+- ✅ Tauri desktop and Capacitor mobile wrappers (store publishing needs Jay's developer accounts)
+- ✅ Offline app shell for the installed PWA
+- ✅ Accessibility audit (automated WCAG 2.1 AA scans)
+- Monitoring, backups

@@ -2,6 +2,19 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
+- **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
+- **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.
+- **Desktop** (desktop/, Tauri 2) and **mobile** (mobile/, Capacitor 8 with Android and iOS projects) shells that open the hosted AEGIS. New on-demand GitHub Actions workflow (.github/workflows/apps.yml) builds the Windows installer and Android APK without Jay installing any tools. Guide: docs/APPS.md.
+
+**Verified**
+- 90 unit tests pass (new: calculator, every tool, the streamed tool-call loop with arguments split across chunks, the no-tools fallback, the round limit).
+- 31 browser tests pass, 1 skipped by design (new on desktop and mobile: Agent mode runs the calculator, shows the approval card, saves nothing before Approve, and keeps the decision after reload; offline reload shows the banner and still opens a saved chat). The fake provider now streams tool calls.
+- Desktop: `tauri build` compiles the app here into a 1.35 MB Linux package, and the app starts and stays running under a virtual display (setup page, menu and native shell work without crashing).
+- Capacitor: `cap add android`, `cap add ios` and `cap sync` succeed; the committed native projects contain no server address.
+
+**Blocked here**: the Android APK can't be compiled in this environment because Google's download servers are blocked by its network policy. The Apps workflow builds it on GitHub instead.
+
 ## 2026-10-09: Security and accessibility pass
 - axe-core WCAG 2.1 A/AA scans were added to the browser tests (home, chat and settings; dark and light; desktop and mobile). The first run found low-contrast "faint" text in the mobile drawer and settings, so the colour was raised to at least 4.5:1. All scans now pass.
 - Dialogs: focus moves into the dialog, stays trapped while it's open, and returns to the trigger on close. A browser test covers this.

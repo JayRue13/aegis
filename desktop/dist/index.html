@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AEGIS</title>
+    <style>
+      :root { color-scheme: light dark; --bg: #f6f7fb; --fg: #151823; --muted: #5d6478; --line: #d9dce6; --accent: #5b6cff; }
+      @media (prefers-color-scheme: dark) { :root { --bg: #0d0f15; --fg: #eceef5; --muted: #9aa1b5; --line: #262a36; } }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 16px; }
+      main { width: 100%; max-width: 420px; }
+      h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+      p { color: var(--muted); margin: 0 0 20px; }
+      label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+      input { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; }
+      input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+      button { margin-top: 12px; width: 100%; padding: 10px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+      #error { color: #d33; min-height: 1.5em; margin-top: 8px; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Connect to AEGIS</h1>
+      <p>Enter the address of your AEGIS deployment. You can change it later from the AEGIS menu.</p>
+      <form id="form">
+        <label for="url">Server address</label>
+        <input id="url" type="url" placeholder="https://your-aegis.vercel.app" required autofocus />
+        <button type="submit">Open AEGIS</button>
+        <div id="error" role="alert"></div>
+      </form>
+    </main>
+    <script>
+      const KEY = "aegis-server-url";
+      const setup = new URLSearchParams(location.search).has("setup");
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch {}
+      if (saved && !setup) location.replace(saved);
+      const input = document.getElementById("url");
+      if (saved) input.value = saved;
+      document.getElementById("form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const error = document.getElementById("error");
+        let url;
+        try { url = new URL(input.value.trim()); } catch { error.textContent = "That isn't a valid address."; return; }
+        const local = ["localhost", "127.0.0.1"].includes(url.hostname);
+        if (url.protocol !== "https:" && !(local && url.protocol === "http:")) {
+          error.textContent = "Use an https:// address (http is allowed only for localhost).";
+          return;
+        }
+        try { localStorage.setItem(KEY, url.origin); } catch {}
+        location.replace(url.origin);
+      });
+    </script>
+  </body>
+</html>
