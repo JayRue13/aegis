@@ -1,0 +1,62 @@
+// Shared types used by both the browser app and the server routes.
+
+export type Role = "system" | "user" | "assistant";
+
+export interface ImagePart {
+  type: "image";
+  /** data: URL (base64) of the image. */
+  dataUrl: string;
+  name?: string;
+}
+
+export interface FileContext {
+  name: string;
+  /** Plain-text content of an attached text file. */
+  text: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: Role;
+  content: string;
+  images?: ImagePart[];
+  files?: FileContext[];
+  /** Model id that produced an assistant message, e.g. "openrouter:meta-llama/...". */
+  model?: string;
+  createdAt: string;
+  error?: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  projectId: string | null;
+  model: string | null;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  instructions: string;
+  createdAt: string;
+}
+
+export interface Memory {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface ModelInfo {
+  /** Fully-qualified id: "<provider>:<model>". */
+  id: string;
+  provider: string;
+  label: string;
+  vision?: boolean;
+}
+
+/** Events streamed from /api/chat as newline-delimited JSON. */
+export type ChatStreamEvent = { type: "delta"; text: string } | { type: "error"; message: string } | { type: "done" };

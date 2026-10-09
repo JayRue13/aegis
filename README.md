@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AEGIS
 
-## Getting Started
+A personal AI platform: streaming chat across multiple free model providers, persistent memory, workspaces, file and image attachments, and optional accounts with cross-device sync. Runs in any browser and installs on phones and desktops as an app (PWA).
 
-First, run the development server:
+**Cost to run: $0/month** on free tiers (Vercel Hobby + Supabase Free + free model APIs).
+
+## Features (v0.1)
+
+- **Chat** with streaming replies, Markdown, syntax-highlighted code with copy buttons, stop, regenerate and edit-and-resend.
+- **Model picker** across OpenRouter (free models), Google Gemini, Groq, your own Ollama, or any OpenAI-compatible endpoint. Keys stay on the server.
+- **Offline demo model** so the app works before any key is added.
+- **Memory**: say “remember that …” or add facts in the Memory panel; the most relevant ones are added to each conversation.
+- **Workspaces** with their own instructions (like project folders).
+- **Attachments**: text and code files are added as context; images go to vision models.
+- **History**: conversations grouped by date, pin, rename, delete, full-text search.
+- **Accounts (optional)**: Supabase email sign-in, synced history, row-level security, invite list.
+- **Protection**: shared access code mode, per-user rate limiting, production lock when no sign-in is configured.
+- **Your data**: JSON export and import, copy guest chats into your account.
+- Dark and light themes, mobile layout, installable PWA, security headers.
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # optional: add a free model key
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+With no keys, AEGIS runs in demo mode. Add `GEMINI_API_KEY`, `GROQ_API_KEY` or `OPENROUTER_API_KEY` for real answers.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run check` | Lint, typecheck and unit tests |
+| `npm run test:e2e` | Browser tests (desktop + mobile) against a production build |
+| `scripts/test-db.sh` | Applies the Supabase schema to a scratch Postgres and tests row-level security |
 
-## Learn More
+## Docs
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Deployment guide](docs/DEPLOYMENT.md): Vercel + Supabase, step by step
+- [Architecture](docs/ARCHITECTURE.md)
+- [Decisions log](docs/DECISIONS.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Progress log](docs/PROGRESS.md)

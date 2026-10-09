@@ -1,0 +1,152 @@
+// Signed-in storage in Supabase Postgres. Row-level security (see
+// supabase/migrations) guarantees each user only ever sees their own rows.
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ChatMessage, Conversation, Memory, Project } from "../types";
+import type { ChatStore } from "./types";
+
+type Row = Record<string, unknown>;
+
+function check<T>(res: { data: T | null; error: { message: string } | null }): T {
+  if (res.error) throw new Error(res.error.message);
+  return res.data as T;
+}
+
+export class SupabaseStore implements ChatStore {
+  readonly kind = "supabase" as const;
+  constructor(
+    private db: SupabaseClient,
+    private userId: string,
+  ) {}
+
+  async listConversations(): Promise<Conversation[]> {
+    const rows = check<Row[]>(
+      await this.db.from("conversations").select("*").order("updated_at", { ascending: false }),
+    );
+    return rows.map((r) => ({
+      id: r.id as string,
+      title: r.title as string,
+      projectId: (r.project_id as string) ?? null,
+      model: (r.model as string) ?? null,
+      pinned: Boolean(r.pinned),
+      createdAt: r.created_at as string,
+      updatedAt: r.updated_at as string,
+    }));
+  }
+
+  async saveConversation(c: Conversation) {
+    check(
+      await this.db.from("conversations").upsert({
+        id: c.id,
+        user_id: this.userId,
+        title: c.title,
+        project_id: c.projectId,
+        model: c.model,
+        pinned: c.pinned,
+        created_at: c.createdAt,
+        updated_at: c.updatedAt,
+      }),
+    );
+  }
+
+  async deleteConversation(id: string) {
+    check(await this.db.from("conversations").delete().eq("id", id));
+  }
+
+  async getMessages(conversationId: string): Promise<ChatMessage[]> {
+    const rows = check<Row[]>(
+      await this.db
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true }),
+    );
+    return rows.map((r) => {
+      const att = (r.attachments as { files?: ChatMessage["files"]; images?: ChatMessage["images"] }) ?? {};
+      return {
+        id: r.id as string,
+        role: r.role as ChatMessage["role"],
+        content: r.content as string,
+        model: (r.model as string) ?? undefined,
+        error: Boolean(r.error) || undefined,
+        files: att.files,
+        images: att.images,
+        createdAt: r.created_at as string,
+      };
+    });
+  }
+
+  async saveMessage(conversationId: string, m: ChatMessage) {
+    // Images are kept as names only for now so the free 500 MB database is
+    // not consumed by base64 blobs (moving them to Supabase Storage is on the roadmap).
+    const images = m.images?.map((i) => ({ type: "image" as const, dataUrl: "", name: i.name }));
+    check(
+      await this.db.from("messages").upsert({
+        id: m.id,
+        conversation_id: conversationId,
+        user_id: this.userId,
+        role: m.role,
+        content: m.content,
+        model: m.model ?? null,
+        error: m.error ?? false,
+        attachments: { files: m.files, images },
+        created_at: m.createdAt,
+      }),
+    );
+  }
+
+  async deleteMessage(_conversationId: string, id: string) {
+    check(await this.db.from("messages").delete().eq("id", id));
+  }
+
+  async searchMessages(query: string): Promise<string[]> {
+    const escaped = query.replace(/[%_\\]/g, (c) => `\\${c}`);
+    const rows = check<{ conversation_id: string }[]>(
+      await this.db.from("messages").select("conversation_id").ilike("content", `%${escaped}%`).limit(200),
+    );
+    return [...new Set(rows.map((r) => r.conversation_id))];
+  }
+
+  async listProjects(): Promise<Project[]> {
+    const rows = check<Row[]>(await this.db.from("projects").select("*").order("name"));
+    return rows.map((r) => ({
+      id: r.id as string,
+      name: r.name as string,
+      instructions: (r.instructions as string) ?? "",
+      createdAt: r.created_at as string,
+    }));
+  }
+
+  async saveProject(p: Project) {
+    check(
+      await this.db.from("projects").upsert({
+        id: p.id,
+        user_id: this.userId,
+        name: p.name,
+        instructions: p.instructions,
+        created_at: p.createdAt,
+      }),
+    );
+  }
+
+  async deleteProject(id: string) {
+    check(await this.db.from("projects").delete().eq("id", id));
+  }
+
+  async listMemories(): Promise<Memory[]> {
+    const rows = check<Row[]>(await this.db.from("memories").select("*").order("created_at", { ascending: false }));
+    return rows.map((r) => ({ id: r.id as string, content: r.content as string, createdAt: r.created_at as string }));
+  }
+
+  async saveMemory(m: Memory) {
+    check(
+      await this.db
+        .from("memories")
+        .upsert({ id: m.id, user_id: this.userId, content: m.content, created_at: m.createdAt }),
+    );
+  }
+
+  async deleteMemory(id: string) {
+    check(await this.db.from("memories").delete().eq("id", id));
+  }
+}
