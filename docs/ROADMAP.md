@@ -28,7 +28,7 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ✅ Text/code file context, image input for vision models
 - ✅ PDF and DOCX text extraction
 - ✅ Images in a private Supabase Storage bucket
-- ⏳ Workspace knowledge files with retrieval
+- ✅ Workspace knowledge files with retrieval (keyword ranking; embeddings later)
 - ✅ Download a chat as Markdown
 - ✅ Voice input (browser speech recognition)
 - ✅ Read replies aloud
