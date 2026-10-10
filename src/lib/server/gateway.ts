@@ -31,6 +31,9 @@ export function resolveProvider(
   if (!parsed) throw new GatewayError(`Invalid model id "${modelId}"`);
   const provider = getProviders(env).find((p) => p.id === parsed.provider);
   if (!provider) throw new GatewayError(`Provider "${parsed.provider}" is not configured`);
+  if (provider.allowModel && !provider.allowModel(parsed.model)) {
+    throw new GatewayError(`${provider.label} model "${parsed.model}" is not free, so AEGIS won't use it.`, 403);
+  }
   return { provider, model: parsed.model };
 }
 

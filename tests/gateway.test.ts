@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createServer, type Server } from "node:http";
-import { describeHttpError, GatewayError, streamCompletion, toEventStream } from "@/lib/server/gateway";
+import { describeHttpError, GatewayError, resolveProvider, streamCompletion, toEventStream } from "@/lib/server/gateway";
 import { parseNdjson } from "@/lib/chat-client";
 
 async function collect(gen: AsyncGenerator<string>) {
@@ -105,5 +105,34 @@ describe("describeHttpError", () => {
     expect(describeHttpError("Groq", 429, "")).toMatch(/rate limit/);
     expect(describeHttpError("Groq", 404, '{"error":{"message":"no such model"}}')).toMatch(/no such model/);
     expect(describeHttpError("Groq", 500, "oops")).toBe("Groq error 500: oops");
+  });
+});
+
+describe("resolveProvider", () => {
+  const env = { OPENROUTER_API_KEY: "k" };
+
+  it("allows free OpenRouter models and the free router", () => {
+    expect(resolveProvider("openrouter:meta-llama/llama-3.3-70b-instruct:free", env).model).toBe(
+      "meta-llama/llama-3.3-70b-instruct:free",
+    );
+    expect(resolveProvider("openrouter:openrouter/free", env).model).toBe("openrouter/free");
+  });
+
+  it("refuses paid OpenRouter models sent directly by a client", () => {
+    expect(() => resolveProvider("openrouter:openai/gpt-4o", env)).toThrow(/not free/);
+    try {
+      resolveProvider("openrouter:openai/gpt-4o", env);
+    } catch (err) {
+      expect((err as GatewayError).status).toBe(403);
+    }
+  });
+
+  it("allows paid models only when explicitly enabled or pinned", () => {
+    expect(resolveProvider("openrouter:openai/gpt-4o", { ...env, OPENROUTER_ALLOW_PAID: "true" }).model).toBe(
+      "openai/gpt-4o",
+    );
+    expect(resolveProvider("openrouter:openai/gpt-4o", { ...env, OPENROUTER_MODELS: "openai/gpt-4o" }).model).toBe(
+      "openai/gpt-4o",
+    );
   });
 });
