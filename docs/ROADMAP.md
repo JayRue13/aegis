@@ -32,7 +32,8 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ✅ Download a chat as Markdown
 - ✅ Voice input (browser speech recognition)
 - ✅ Read replies aloud
-- 💤 Export as PDF/DOCX
+- ✅ Print / save a chat as PDF (browser print, no library)
+- 💤 Export as DOCX
 
 ## Milestone 4: Agents and tools 🔨
 - ✅ Tool-calling agent loop (Agent mode) with step trace and approval cards for data changes

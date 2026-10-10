@@ -315,3 +315,39 @@ body {
 :root[data-theme="light"] .hljs-title {
   color: #0a6fb0;
 }
+
+/* Print / Save as PDF: light colors on white, whole chat, no app chrome. */
+@media print {
+  :root:root,
+  :root:root[data-theme] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f3f4f8;
+    --surface-3: #eceef4;
+    --border: rgba(15, 20, 40, 0.14);
+    --border-strong: rgba(15, 20, 40, 0.24);
+    --text: #141726;
+    --text-muted: #4a5064;
+    --text-faint: #565c70;
+    --accent: #5a4ce0;
+    --accent-2: #1a8fb0;
+    --accent-ink: #ffffff;
+    --code-bg: #f3f4f9;
+    --shadow: none;
+    color-scheme: light;
+  }
+  html,
+  body {
+    height: auto;
+  }
+  body {
+    background: #ffffff;
+  }
+  .prose-aegis pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  [data-role="user"] {
+    break-inside: avoid-page;
+  }
+}

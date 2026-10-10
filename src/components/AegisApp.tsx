@@ -18,7 +18,7 @@ import { MemoryPanel } from "./MemoryPanel";
 import { ProjectDialog } from "./ProjectDialog";
 import { SettingsPanel, type Health, type Theme } from "./SettingsPanel";
 import { Logo } from "./Logo";
-import { IconDownload, IconMenu, IconPlus } from "./Icons";
+import { IconDownload, IconMenu, IconPlus, IconPrinter } from "./Icons";
 import { conversationToMarkdown, safeFilename } from "@/lib/export";
 import { worthLearning } from "@/lib/learn";
 
@@ -89,7 +89,11 @@ export function AegisApp() {
     () => true,
     () => false,
   );
-  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(!supabase);
 
@@ -585,9 +589,9 @@ export function AegisApp() {
   );
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden">
+    <div className="flex h-dvh w-full overflow-hidden print:block print:h-auto print:overflow-visible">
       {/* Desktop sidebar */}
-      <div className="hidden w-[280px] shrink-0 border-r border-line md:block">{sidebar}</div>
+      <div className="hidden w-[280px] shrink-0 border-r border-line md:block print:hidden">{sidebar}</div>
 
       {/* Mobile drawer */}
       {sidebarOpen && (
@@ -606,7 +610,7 @@ export function AegisApp() {
       <main className="relative flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-2 px-3 md:px-6">
           <button
-            className="rounded-lg p-2 text-muted hover:bg-surface-2 md:hidden"
+            className="rounded-lg p-2 text-muted hover:bg-surface-2 md:hidden print:hidden"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
           >
@@ -620,7 +624,23 @@ export function AegisApp() {
           </div>
           {activeConv && messages.length > 0 && !streamingId && (
             <button
-              className="rounded-lg p-2 text-muted transition hover:bg-surface-2 hover:text-fg"
+              className="rounded-lg p-2 text-muted transition hover:bg-surface-2 hover:text-fg print:hidden"
+              aria-label="Print or save chat as PDF"
+              title="Print or save as PDF"
+              onClick={() => {
+                // The browser suggests the page title as the PDF file name.
+                const previous = document.title;
+                document.title = activeConv.title;
+                window.addEventListener("afterprint", () => (document.title = previous), { once: true });
+                window.print();
+              }}
+            >
+              <IconPrinter />
+            </button>
+          )}
+          {activeConv && messages.length > 0 && !streamingId && (
+            <button
+              className="rounded-lg p-2 text-muted transition hover:bg-surface-2 hover:text-fg print:hidden"
               aria-label="Download chat as Markdown"
               title="Download chat as Markdown"
               onClick={() => {
@@ -636,7 +656,7 @@ export function AegisApp() {
             </button>
           )}
           <button
-            className="rounded-lg p-2 text-muted hover:bg-surface-2 md:hidden"
+            className="rounded-lg p-2 text-muted hover:bg-surface-2 md:hidden print:hidden"
             onClick={newChat}
             aria-label="New chat"
           >
@@ -645,7 +665,7 @@ export function AegisApp() {
         </header>
 
         {!online && (
-          <div className="mx-auto mb-2 w-full max-w-3xl px-4">
+          <div className="mx-auto mb-2 w-full max-w-3xl px-4 print:hidden">
             <div
               className="rounded-2xl border border-line bg-surface-2 px-4 py-2.5 text-sm text-muted"
               role="status"
@@ -657,7 +677,7 @@ export function AegisApp() {
         )}
 
         {apiError && (
-          <div className="mx-auto mb-2 w-full max-w-3xl px-4">
+          <div className="mx-auto mb-2 w-full max-w-3xl px-4 print:hidden">
             <div
               className="flex items-center justify-between gap-3 rounded-2xl border border-danger/30 bg-danger/10 px-4 py-2.5 text-sm"
               role="alert"
@@ -675,7 +695,7 @@ export function AegisApp() {
 
         <div
           ref={scrollRef}
-          className="min-h-0 flex-1 overflow-y-auto"
+          className="min-h-0 flex-1 overflow-y-auto print:overflow-visible"
           onScroll={(e) => {
             const el = e.currentTarget;
             stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
@@ -725,7 +745,7 @@ export function AegisApp() {
           )}
         </div>
 
-        <div className="mx-auto w-full max-w-3xl shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:px-6">
+        <div className="mx-auto w-full max-w-3xl shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:px-6 print:hidden">
           <Composer
             onSend={(input) => send(input)}
             onStop={stop}
@@ -756,7 +776,7 @@ export function AegisApp() {
         </div>
 
         {toast && (
-          <div className="animate-fade-up pointer-events-none absolute inset-x-0 bottom-36 z-30 flex justify-center px-4">
+          <div className="animate-fade-up pointer-events-none absolute inset-x-0 bottom-36 z-30 flex justify-center px-4 print:hidden">
             <div
               className={cn("glass rounded-full border border-line-strong px-4 py-2 text-sm shadow-[var(--shadow)]")}
               role="status"

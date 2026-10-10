@@ -32,6 +32,30 @@ test("remember that … saves a memory", async ({ page, isMobile }) => {
   await expect(page.getByTestId("memory-list")).toContainText("My favourite language is Rust");
 });
 
+test("a chat prints as a clean page for Save as PDF", async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as { printedAs: string }).printedAs = "";
+    window.print = () => {
+      (window as unknown as { printedAs: string }).printedAs = document.title;
+    };
+  });
+  await page.goto("/");
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("Print me please");
+  await box.press("Enter");
+  await expect(page.locator('[data-role="assistant"]').last()).toContainText("demo mode");
+
+  await page.getByRole("button", { name: "Print or save chat as PDF" }).click();
+  expect(await page.evaluate(() => (window as unknown as { printedAs: string }).printedAs)).toBe("Print me please");
+
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Print or save chat as PDF" })).toBeHidden();
+  await expect(page.getByTestId("chat-title")).toBeVisible();
+  await expect(page.locator('[data-role="assistant"]').last()).toBeVisible();
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
+});
+
 test("workspaces carry their own chats", async ({ page, isMobile }) => {
   await page.goto("/");
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
@@ -185,7 +209,10 @@ test("agent mode uses tools and asks before saving a memory", async ({ page, isM
 
   // The decision is stored with the chat.
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
-  await page.getByRole("button", { name: /What is 6 times 7/ }).first().click();
+  await page
+    .getByRole("button", { name: /What is 6 times 7/ })
+    .first()
+    .click();
   await expect(page.getByTestId("agent-action")).toContainText("Approved");
 });
 
