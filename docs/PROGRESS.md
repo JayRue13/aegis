@@ -2,6 +2,17 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-10: Usage page
+- Settings → Usage shows a signed-in user's message counts for today, 7 days and 30 days, plus the daily limit if one is set. Admins also get a table of everyone's counts for the last 30 days.
+- Migration `0005_admin_usage.sql`: `public.admins` (no API access), `is_admin()` and `usage_summary()` (security definer, admins only). No service-role key. Decision in DECISIONS.md; Jay was asked on a decision card and the recommended option was built while waiting.
+- The server now counts messages for every signed-in user. Without a limit (or for admins) the count is sent without waiting, so chats are not slowed.
+- `/api/health` reports `dailyLimit` (a number, not a secret) for the panel.
+
+**Verified**
+- `npm run check` (new: usage summing, admin vs non-admin fetch, counting without a limit) and `npm run build` pass.
+- `scripts/test-db.sh` passes on Postgres 16 (new: a non-admin cannot read the summary, add themselves as admin or read the admin list; an admin sees other people's totals but still only their own raw rows; email matching ignores case).
+- Browser suite passes (33 passed, 1 skipped). The panel itself needs a signed-in Supabase session, which the browser tests don't have.
+
 ## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
 - **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
 - **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.

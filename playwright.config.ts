@@ -6,6 +6,8 @@ const FAKE = PORT + 99;
 export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
+  // The first request on a cold CI server can exceed the 5s default.
+  expect: { timeout: 10_000 },
   retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,

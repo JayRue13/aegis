@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Usage page (Settings → Usage, signed-in users): your messages today, this week and this month. Admins also see everyone's counts for the last 30 days, which helps keep a shared AEGIS within free model limits. Needs migration `0005_admin_usage.sql`; add admins with one SQL line (see DEPLOYMENT.md). Messages are now counted for every signed-in user, even without a daily limit.
 - OpenRouter's free auto-router ("Free auto (best available)") is listed first when an OpenRouter key is set. It picks whichever free model is available, so chats keep working when one free model is busy.
 - Security: the server now refuses paid OpenRouter models even if a client asks for one directly. Before, only the model picker hid them. Paid models still work if `OPENROUTER_ALLOW_PAID=true` is set or the model is listed in `OPENROUTER_MODELS`.
 

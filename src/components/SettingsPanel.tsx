@@ -10,6 +10,7 @@ export interface Health {
   auth: "supabase" | "access-code" | "open" | "locked";
   providers: string[];
   demo: boolean;
+  dailyLimit?: number;
 }
 
 export type Theme = "system" | "dark" | "light";
@@ -22,6 +23,7 @@ export function SettingsPanel({
   onOAuth,
   oauthProviders,
   onSignOut,
+  onOpenUsage,
   onCopyLocalToCloud,
   accessCode,
   onAccessCode,
@@ -44,6 +46,7 @@ export function SettingsPanel({
   onOAuth: (provider: string) => void;
   oauthProviders: string[];
   onSignOut: () => void;
+  onOpenUsage: () => void;
   onCopyLocalToCloud: () => Promise<string>;
   accessCode: string;
   onAccessCode: (code: string) => void;
@@ -86,6 +89,9 @@ export function SettingsPanel({
                     }}
                   >
                     Copy chats from this device to my account
+                  </button>
+                  <button className={`${buttonClass} border border-line hover:bg-surface-2`} onClick={onOpenUsage}>
+                    Usage
                   </button>
                   <button className={`${buttonClass} text-danger hover:bg-danger/10`} onClick={onSignOut}>
                     Sign out

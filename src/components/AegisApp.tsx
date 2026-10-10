@@ -15,6 +15,8 @@ import { Sidebar } from "./Sidebar";
 import { MessageItem } from "./MessageItem";
 import { Composer, type ComposerSubmit } from "./Composer";
 import { MemoryPanel } from "./MemoryPanel";
+import { UsagePanel } from "./UsagePanel";
+import { fetchUsage } from "@/lib/usage";
 import { ProjectDialog } from "./ProjectDialog";
 import { SettingsPanel, type Health, type Theme } from "./SettingsPanel";
 import { Logo } from "./Logo";
@@ -89,7 +91,11 @@ export function AegisApp() {
     () => true,
     () => false,
   );
-  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(!supabase);
 
@@ -111,7 +117,7 @@ export function AegisApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchHits, setSearchHits] = useState<{ q: string; ids: Set<string> } | null>(null);
-  const [panel, setPanel] = useState<null | "settings" | "memory" | { project: Project | null }>(null);
+  const [panel, setPanel] = useState<null | "settings" | "memory" | "usage" | { project: Project | null }>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const [theme, setTheme] = useState<Theme>(() => (readPref(PREF.theme) as Theme) || "system");
@@ -389,6 +395,11 @@ export function AegisApp() {
     },
     [store, model, projects, memories, userName, authHeaders, learn, learnFrom, customInstructions, mode, webSearch],
   );
+
+  const loadUsage = useCallback(() => {
+    if (!supabase) return Promise.reject(new Error("Sign-in is not configured."));
+    return fetchUsage(supabase);
+  }, [supabase]);
 
   const addMemory = useCallback(
     async (content: string) => {
@@ -767,6 +778,10 @@ export function AegisApp() {
         )}
       </main>
 
+      {panel === "usage" && supabase && (
+        <UsagePanel load={loadUsage} dailyLimit={health?.dailyLimit} onClose={() => setPanel(null)} />
+      )}
+
       {panel === "memory" && (
         <MemoryPanel
           memories={memories}
@@ -815,6 +830,7 @@ export function AegisApp() {
             await supabase?.auth.signOut();
             setPanel(null);
           }}
+          onOpenUsage={() => setPanel("usage")}
           onCopyLocalToCloud={async () => {
             if (!store || !localStore || store.kind !== "supabase") return "Sign in first.";
             try {

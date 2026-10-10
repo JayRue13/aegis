@@ -12,6 +12,7 @@ export async function GET() {
       auth: authMode(),
       providers: getProviders().map((p) => p.id),
       demo: demoEnabled(),
+      dailyLimit: Number(process.env.AEGIS_DAILY_MESSAGE_LIMIT ?? 0) || 0,
     },
     { headers: { "Cache-Control": "no-store" } },
   );
