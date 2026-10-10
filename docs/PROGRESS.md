@@ -2,6 +2,15 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-10: Workspace knowledge files
+- Workspaces can hold knowledge files (text, Markdown, PDF, Word). For each message, the most relevant excerpts (BM25 over ~1,200-character overlapping chunks, capped at ~8,000 characters) go into the system prompt, marked as information rather than instructions. Small workspaces are sent whole.
+- Storage: localStorage for guests; a new `knowledge_files` table for signed-in users, with row-level security, a trigger that blocks attaching files to someone else's workspace, and cascade delete with the workspace. Backups include knowledge files.
+
+**Verified**
+- 97 unit tests pass (new: chunking, selection, LocalStore knowledge and backup, prompt section).
+- Database tests pass, including the new `40_knowledge_test.sql`: owners see their files; other users can't read, plant or delete them; deleting a workspace removes its files.
+- 35 browser tests pass, 1 skipped by design. New on desktop and mobile: upload a file to a workspace, the reply shows the model received it, the file is still there after reload, and it can be removed.
+
 ## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
 - **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
 - **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.

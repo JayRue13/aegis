@@ -74,6 +74,21 @@ export interface Project {
   createdAt: string;
 }
 
+/** Text of a document added to a workspace's knowledge. */
+export interface KnowledgeFile {
+  id: string;
+  projectId: string;
+  name: string;
+  text: string;
+  createdAt: string;
+}
+
+/** An excerpt from a knowledge file sent with a message. */
+export interface KnowledgeSnippet {
+  name: string;
+  text: string;
+}
+
 export interface Memory {
   id: string;
   content: string;

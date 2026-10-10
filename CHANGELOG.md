@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Workspace knowledge files: add text, Markdown, PDF or Word files to a workspace (Edit workspace → Add files). In that workspace's chats, AEGIS reads the most relevant parts of them. Small workspaces are sent whole; larger ones send the best-matching excerpts. Files sync for signed-in users (new migration `0004_knowledge.sql`) and are included in backups.
+
 ## 0.6.0 (2026-10-09)
 - Agent mode: AEGIS can search the web, read pages, calculate exactly and check the date on its own, showing each step it took. Anything that changes your data (saving a memory, creating a workspace) appears as a card you approve or dismiss; nothing is saved without your click. Models that can't use tools fall back to a normal answer.
 - Works offline once installed: the app and your saved chats on this device open without a connection, and a banner says when you're offline.

@@ -1,6 +1,6 @@
 // Guest-mode storage in the browser's localStorage.
 
-import type { ChatMessage, Conversation, Memory, Project } from "../types";
+import type { ChatMessage, Conversation, KnowledgeFile, Memory, Project } from "../types";
 import type { ChatStore } from "./types";
 
 export interface KV {
@@ -93,6 +93,17 @@ export class LocalStore implements ChatStore {
       c.projectId === id ? { ...c, projectId: null } : c,
     );
     this.write("conversations", convs);
+    this.kv.removeItem(PREFIX + `knowledge:${id}`);
+  }
+
+  async listKnowledge(projectId: string) {
+    return this.read<KnowledgeFile[]>(`knowledge:${projectId}`, []);
+  }
+  async saveKnowledge(f: KnowledgeFile) {
+    this.upsert(`knowledge:${f.projectId}`, f);
+  }
+  async deleteKnowledge(projectId: string, id: string) {
+    this.remove(`knowledge:${projectId}`, id);
   }
 
   async listMemories() {
