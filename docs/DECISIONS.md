@@ -2,6 +2,9 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-10: Admins for the usage page are listed in the database
+`usage_summary()` returns everyone's message counts only when the caller's email is in `public.admins`, a table no user can read or write through the API. This keeps AEGIS free of Supabase's service-role key, which would bypass row-level security if it leaked. Cost: Jay adds his email once in the SQL editor, separate from `AEGIS_ADMIN_EMAILS` (which only exempts people from the daily limit). Messages are now counted for every signed-in user, without slowing the chat when no limit is set, so the page has data. Would change if a single admin setting becomes worth a server-side key, or Jay picks another option on the decision card.
+
 ## 2026-10-09: Agent tools that change data need approval
 Read-only tools (search, read a page, calculator, date) run automatically. Tools that change the user's data only propose the change; the browser shows an approval card and applies it on Approve. This keeps prompt-injected pages from silently writing memories or creating workspaces. Tools run on the server for at most 5 rounds per reply.
 

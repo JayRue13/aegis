@@ -15,7 +15,7 @@ AEGIS lists only free OpenRouter models unless you set `OPENROUTER_ALLOW_PAID=tr
 ## 2. Create the Supabase project (accounts + sync)
 
 1. https://supabase.com → New project (Free plan). Save the database password somewhere safe.
-2. **SQL Editor** → New query → paste `supabase/migrations/0001_init.sql` → Run. Then do the same with `0002_attachments_storage.sql`, which creates the private image bucket, and `0003_usage.sql`, which adds the per-user daily counter.
+2. **SQL Editor** → New query → paste `supabase/migrations/0001_init.sql` → Run. Then do the same with `0002_attachments_storage.sql`, which creates the private image bucket, and `0003_usage.sql`, which adds the per-user daily counter, and `0005_admin_usage.sql`, which adds the admin usage overview. To see everyone's usage under Settings → Usage, add yourself as an admin once: `insert into public.admins (email) values ('you@example.com');` (lowercase).
 3. **Project Settings → API**: copy the Project URL and the `anon` public key.
 4. Later, after step 3 gives you a URL: **Authentication → URL Configuration** → set Site URL to your Vercel URL and add it under Redirect URLs.
 

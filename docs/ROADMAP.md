@@ -48,7 +48,8 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 
 ## Milestone 6: Sharing and polish 💤
 - ✅ Per-user daily message limit (admins exempt)
-- Usage dashboard; admin panel; invite flow
+- ✅ Usage page (own counts for everyone, all users for admins)
+- Admin panel; invite flow
 - ✅ Tauri desktop and Capacitor mobile wrappers (store publishing needs Jay's developer accounts)
 - ✅ Offline app shell for the installed PWA
 - ✅ Accessibility audit (automated WCAG 2.1 AA scans)
