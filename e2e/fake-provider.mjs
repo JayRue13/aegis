@@ -17,7 +17,11 @@ function toolCalls(res) {
   const chunk = (tool_calls) => `data: ${JSON.stringify({ choices: [{ delta: { tool_calls } }] })}\n\n`;
   res.write(chunk([{ index: 0, id: "call_calc", function: { name: "calculator", arguments: '{"expression":' } }]));
   res.write(chunk([{ index: 0, function: { arguments: '"6*7"}' } }]));
-  res.write(chunk([{ index: 1, id: "call_mem", function: { name: "save_memory", arguments: '{"fact":"Favorite number is 42"}' } }]));
+  res.write(
+    chunk([
+      { index: 1, id: "call_mem", function: { name: "save_memory", arguments: '{"fact":"Favorite number is 42"}' } },
+    ]),
+  );
   res.end("data: [DONE]\n\n");
 }
 
@@ -48,6 +52,13 @@ createServer((req, res) => {
     if (tail?.role === "tool") {
       const results = body.messages.filter((m) => m.role === "tool").map((m) => m.content.split("\n")[0]);
       return stream(res, `Agent result: ${results.join(" | ")}`);
+    }
+    if (lastText.includes("write some code")) {
+      const fence = "```";
+      return stream(
+        res,
+        `Here you go:\n\n${fence}js\nconst xs = [1, 2, 3];\nconsole.log("sum", xs.reduce((a, b) => a + b, 0));\nconsole.log({ ok: true });\n${fence}\n\n${fence}javascript\nwhile (true) {}\n${fence}\n\n${fence}js\nconsole.log(typeof localStorage, typeof document);\nawait fetch("http://127.0.0.1:${port - 99}/api/health", { mode: "no-cors" });\nconsole.log("network allowed");\n${fence}\n`,
+      );
     }
     if (system.includes("extract durable facts")) return stream(res, '["User is training to be a pilot"]');
     const remembered = system.includes("What you remember about the user") ? " [memories received]" : "";

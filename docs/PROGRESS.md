@@ -2,6 +2,15 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-10: Sandboxed JavaScript runner
+- JavaScript code blocks in replies get a Run button. Console output (including objects, warnings and errors) appears under the block. Top-level `await` works.
+- Isolation: opaque-origin sandboxed iframe, a `default-src 'none'` policy inside it, and a Worker that is killed after 5 seconds. Details in docs/SECURITY.md. The app CSP gains `worker-src blob:`.
+- Python (Pyodide) is left for later: it is a ~10 MB download from a CDN, which the CSP and the offline goal argue against for now.
+
+**Verified**
+- `npm run check` (3 new unit tests) and `npm run build` pass.
+- New browser test on desktop and mobile: output of a normal block, an endless loop stopped at 5 seconds with the page still responsive, and a block that sees no `localStorage` or `document` and cannot reach AEGIS's own server. Control: with the sandbox's policy removed, the same request succeeded, so the test really exercises the block. The existing no-CSP-violations test still passes.
+
 ## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
 - **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
 - **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.

@@ -40,7 +40,8 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ✅ URL reader (links in a message are fetched with SSRF protection)
 - ✅ Web search (Wikipedia with no key, SearXNG or Brave optional)
 - ✅ Specialist modes: Research, Code, Plan, Write (instruction presets)
-- 💤 Sandboxed code execution; calendar/email integrations
+- ✅ Sandboxed JavaScript runner for code blocks (in the browser, no network)
+- 💤 Python runner (Pyodide); calendar/email integrations
 
 ## Milestone 5: Automation and sync 💤
 - Scheduled tasks (Supabase cron / GitHub Actions), notifications

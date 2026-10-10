@@ -20,3 +20,11 @@ Email the owner (see the GitHub profile) instead of opening a public issue.
 
 ## Paid-model guard
 The model picker lists only free OpenRouter models, and the server enforces the same rule: `resolveProvider` rejects any OpenRouter model that isn't `:free` or the free router (HTTP 403), unless `OPENROUTER_ALLOW_PAID=true` is set or the model is pinned in `OPENROUTER_MODELS`. A client therefore can't spend account credit by sending a paid model id directly.
+
+## Code runner sandbox
+The Run button on JavaScript code blocks (src/lib/runjs.ts) executes model-written code, so it is isolated in three layers:
+- A hidden `<iframe sandbox="allow-scripts">` with an opaque origin: no access to AEGIS's cookies, localStorage, IndexedDB, service worker caches or DOM.
+- That frame's own Content Security Policy is `default-src 'none'`, so the code cannot make any network request. A browser test checks that even a `no-cors` request to AEGIS's own server fails, and a manual control run without this policy confirmed the same request otherwise succeeds.
+- The code runs in a Worker inside the frame, which is terminated after 5 seconds, so an endless loop cannot freeze the page. Output is capped at 200 lines / 20,000 characters.
+Code only runs when the user clicks Run. The app's CSP allows `worker-src blob:` for this.
+

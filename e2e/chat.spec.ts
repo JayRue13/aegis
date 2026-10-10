@@ -32,6 +32,34 @@ test("remember that … saves a memory", async ({ page, isMobile }) => {
   await expect(page.getByTestId("memory-list")).toContainText("My favourite language is Rust");
 });
 
+test("JavaScript code blocks run in a sandbox", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("model-picker").click();
+  await page.getByRole("option", { name: "echo-1" }).click();
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("Please write some code");
+  await box.press("Enter");
+  const reply = page.locator('[data-role="assistant"]').last();
+  const run = reply.getByRole("button", { name: "Run" });
+  await expect(run).toHaveCount(3);
+
+  await run.nth(0).click();
+  const outputs = reply.getByRole("status", { name: "Code output" });
+  await expect(outputs.first()).toContainText("sum 6");
+  await expect(outputs.first()).toContainText('"ok": true');
+
+  // An endless loop is stopped without freezing the page.
+  await run.nth(1).click();
+  await expect(reply.getByText("Stopped after 5 seconds.")).toBeVisible({ timeout: 15_000 });
+
+  // The sandbox has no page APIs and no network.
+  await run.nth(2).click();
+  await expect(outputs.nth(2)).toContainText("undefined undefined");
+  // Even a no-cors request to AEGIS's own server is refused.
+  await expect(outputs.nth(2)).toContainText("Failed to fetch");
+  await expect(outputs.nth(2)).not.toContainText("network allowed");
+});
+
 test("workspaces carry their own chats", async ({ page, isMobile }) => {
   await page.goto("/");
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
@@ -185,7 +213,10 @@ test("agent mode uses tools and asks before saving a memory", async ({ page, isM
 
   // The decision is stored with the chat.
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
-  await page.getByRole("button", { name: /What is 6 times 7/ }).first().click();
+  await page
+    .getByRole("button", { name: /What is 6 times 7/ })
+    .first()
+    .click();
   await expect(page.getByTestId("agent-action")).toContainText("Approved");
 });
 

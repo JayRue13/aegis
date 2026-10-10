@@ -12,7 +12,8 @@ const csp = [
   `connect-src 'self' ${supabase} ${supabase.replace(/^https/, "wss")}`.trim(),
   "font-src 'self' data:",
   "media-src 'self' blob:",
-  "worker-src 'self'",
+  // blob: lets the sandboxed code runner (src/lib/runjs.ts) start its worker.
+  "worker-src 'self' blob:",
   "manifest-src 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Run JavaScript from a reply: code blocks marked `js` or `javascript` get a Run button that shows the console output under the block. The code runs in a sealed sandbox in your browser with no network and no access to your chats or account, and it is stopped after 5 seconds.
 - OpenRouter's free auto-router ("Free auto (best available)") is listed first when an OpenRouter key is set. It picks whichever free model is available, so chats keep working when one free model is busy.
 - Security: the server now refuses paid OpenRouter models even if a client asks for one directly. Before, only the model picker hid them. Paid models still work if `OPENROUTER_ALLOW_PAID=true` is set or the model is listed in `OPENROUTER_MODELS`.
 
