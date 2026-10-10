@@ -13,6 +13,10 @@ export interface ProviderConfig {
   defaultModels: string[];
   /** Optional explicit model list from env; overrides discovery. */
   pinnedModels?: string[];
+  /** Always listed first (after discovery), e.g. routers that /models may not report as free. */
+  featuredModels?: string[];
+  /** Server-side guard on which model ids may be called (the picker list alone is not enforcement). */
+  allowModel?: (model: string) => boolean;
   /** Filter applied to discovered model ids. */
   filter?: (model: DiscoveredModel) => boolean;
   extraHeaders?: Record<string, string>;
@@ -47,15 +51,23 @@ export function getProviders(env: Env = process.env): ProviderConfig[] {
 
   if (env.OPENROUTER_API_KEY) {
     const allowPaid = env.OPENROUTER_ALLOW_PAID === "true";
+    const pinned = list(env.OPENROUTER_MODELS);
     providers.push({
       id: "openrouter",
       label: "OpenRouter",
       baseUrl: "https://openrouter.ai/api/v1",
       apiKey: env.OPENROUTER_API_KEY,
       defaultModels: ["meta-llama/llama-3.3-70b-instruct:free"],
-      pinnedModels: list(env.OPENROUTER_MODELS),
+      pinnedModels: pinned,
+      // OpenRouter's free router picks an available free model per request,
+      // so it keeps working when individual free models are rate-limited.
+      featuredModels: [OPENROUTER_FREE_ROUTER],
       // Free models only unless paid usage is explicitly enabled.
       filter: allowPaid ? undefined : isFree,
+      // Refuse paid models even if a client sends one directly.
+      allowModel: allowPaid
+        ? undefined
+        : (m) => m.endsWith(":free") || m === OPENROUTER_FREE_ROUTER || (pinned?.includes(m) ?? false),
       extraHeaders: {
         "HTTP-Referer": env.AEGIS_PUBLIC_URL ?? "https://github.com/JayRue13/aegis",
         "X-Title": "AEGIS",
@@ -132,7 +144,10 @@ export function parseModelId(id: string): { provider: string; model: string } | 
   return { provider: id.slice(0, i), model: id.slice(i + 1) };
 }
 
+export const OPENROUTER_FREE_ROUTER = "openrouter/free";
+
 function prettyLabel(model: string): string {
+  if (model === OPENROUTER_FREE_ROUTER) return "Free auto (best available)";
   const base = model.split("/").pop() ?? model;
   return base.replace(/:free$/, " (free)");
 }
@@ -178,8 +193,15 @@ export async function listModels(provider: ProviderConfig, fetchImpl: typeof fet
   } catch {
     models = fallback(provider);
   }
+  models = withFeatured(provider, models);
   cache.set(provider.id, { at: Date.now(), models });
   return models;
+}
+
+function withFeatured(provider: ProviderConfig, models: ModelInfo[]): ModelInfo[] {
+  const featured = (provider.featuredModels ?? []).map((m) => toModelInfo(provider, m));
+  const ids = new Set(featured.map((m) => m.id));
+  return [...featured, ...models.filter((m) => !ids.has(m.id))];
 }
 
 function fallback(provider: ProviderConfig): ModelInfo[] {

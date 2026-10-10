@@ -49,9 +49,14 @@ describe("listModels", () => {
       }),
     );
     const models = await listModels(p, fetchImpl as unknown as typeof fetch);
-    expect(models.map((m) => m.id)).toEqual(["openrouter:b/free-model:free", "openrouter:c/zero"]);
-    expect(models[1].vision).toBe(true);
-    expect(models[0].label).toBe("free-model (free)");
+    expect(models.map((m) => m.id)).toEqual([
+      "openrouter:openrouter/free",
+      "openrouter:b/free-model:free",
+      "openrouter:c/zero",
+    ]);
+    expect(models[0].label).toBe("Free auto (best available)");
+    expect(models[2].vision).toBe(true);
+    expect(models[1].label).toBe("free-model (free)");
   });
 
   it("falls back to defaults when discovery fails", async () => {
