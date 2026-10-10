@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { IconCheck, IconCopy } from "./Icons";
+import { isRunnable, runJavaScript, type RunResult } from "@/lib/runjs";
 
 function textOf(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -17,6 +18,8 @@ function textOf(node: ReactNode): string {
 
 function CodeBlock({ children }: { children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [run, setRun] = useState<RunResult | null>(null);
   const child = Array.isArray(children) ? children[0] : children;
   const className = (child as { props?: { className?: string } })?.props?.className ?? "";
   const lang = /language-([\w+#-]+)/.exec(className)?.[1];
@@ -24,6 +27,21 @@ function CodeBlock({ children }: { children?: ReactNode }) {
     <div className="group/code relative">
       <div className="absolute right-2 top-2 flex items-center gap-2">
         {lang && <span className="text-[11px] uppercase tracking-wider text-faint">{lang}</span>}
+        {isRunnable(lang) && (
+          <button
+            type="button"
+            className="rounded-md border border-line bg-surface-2 px-2 py-0.5 text-xs text-muted transition hover:text-fg disabled:opacity-60 print:hidden"
+            disabled={running}
+            title="Run in a sandbox in your browser (no network, 5 second limit)"
+            onClick={async () => {
+              setRunning(true);
+              setRun(await runJavaScript(textOf(children)));
+              setRunning(false);
+            }}
+          >
+            {running ? "Running…" : "Run"}
+          </button>
+        )}
         <button
           type="button"
           className="rounded-md border border-line bg-surface-2 p-1 text-muted opacity-0 transition group-hover/code:opacity-100 hover:text-fg focus:opacity-100"
@@ -39,6 +57,25 @@ function CodeBlock({ children }: { children?: ReactNode }) {
         </button>
       </div>
       <pre>{children}</pre>
+      {run && (
+        <output
+          aria-label="Code output"
+          className="-mt-2 mb-3 block max-h-72 overflow-auto rounded-b-xl border border-t-0 border-line bg-surface-2 px-3.5 py-2.5 font-mono text-xs whitespace-pre-wrap"
+        >
+          {run.logs.map((l, i) => (
+            <div
+              key={i}
+              className={l.level === "error" ? "text-danger" : l.level === "warn" ? "text-muted" : undefined}
+            >
+              {l.text}
+            </div>
+          ))}
+          {run.truncated && <div className="text-faint">…output truncated</div>}
+          {run.error && <div className="text-danger">{run.error}</div>}
+          {run.timedOut && <div className="text-danger">Stopped after 5 seconds.</div>}
+          {!run.logs.length && !run.error && !run.timedOut && <div className="text-faint">(no output)</div>}
+        </output>
+      )}
     </div>
   );
 }
