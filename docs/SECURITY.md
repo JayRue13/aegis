@@ -17,3 +17,6 @@
 
 ## Reporting
 Email the owner (see the GitHub profile) instead of opening a public issue.
+
+## Paid-model guard
+The model picker lists only free OpenRouter models, and the server enforces the same rule: `resolveProvider` rejects any OpenRouter model that isn't `:free` or the free router (HTTP 403), unless `OPENROUTER_ALLOW_PAID=true` is set or the model is pinned in `OPENROUTER_MODELS`. A client therefore can't spend account credit by sending a paid model id directly.
