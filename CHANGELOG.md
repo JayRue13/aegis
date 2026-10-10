@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Print or save a chat as PDF from the printer button in the chat header. The printout shows just the conversation in light colors, without the sidebar, message box or buttons, and the PDF is named after the chat.
 - OpenRouter's free auto-router ("Free auto (best available)") is listed first when an OpenRouter key is set. It picks whichever free model is available, so chats keep working when one free model is busy.
 - Security: the server now refuses paid OpenRouter models even if a client asks for one directly. Before, only the model picker hid them. Paid models still work if `OPENROUTER_ALLOW_PAID=true` is set or the model is listed in `OPENROUTER_MODELS`.
 

@@ -119,7 +119,7 @@ export function MessageItem({
           )
         )}
         {!editing && (
-          <div className="flex gap-1 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+          <div className="flex gap-1 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100 print:hidden">
             <ActionButton label={copied ? "Copied" : "Copy"} onClick={copy}>
               {copied ? <IconCheck width={15} height={15} /> : <IconCopy width={15} height={15} />}
             </ActionButton>
@@ -241,7 +241,7 @@ export function MessageItem({
           </div>
         ))}
         {!streaming && message.content && (
-          <div className="mt-2 flex items-center gap-1 opacity-60 transition group-hover:opacity-100">
+          <div className="mt-2 flex items-center gap-1 opacity-60 transition group-hover:opacity-100 print:hidden">
             <ActionButton label={copied ? "Copied" : "Copy"} onClick={copy}>
               {copied ? <IconCheck width={15} height={15} /> : <IconCopy width={15} height={15} />}
             </ActionButton>

@@ -2,6 +2,14 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-10: Print or save a chat as PDF
+- A printer button in the chat header opens the browser's print dialog, where "Save as PDF" is built in on every platform. A print stylesheet switches to light colors on white, shows the whole conversation instead of the scroll area, and hides the sidebar, composer, banners and message buttons. The page title is set to the chat title while printing, so the suggested PDF name matches the chat.
+- Chose browser printing over a PDF library: no new dependency or bundle cost, real selectable text, and it works offline and in the desktop/mobile shells.
+
+**Verified**
+- `npm run check` and `npm run build` pass.
+- 35 browser tests pass, 1 skipped by design (new on desktop and mobile: the print button prints with the chat title, and in print media the composer and buttons are hidden while the title and messages stay visible on a white page).
+
 ## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
 - **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
 - **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.

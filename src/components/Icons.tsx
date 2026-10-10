@@ -121,6 +121,12 @@ export const IconUser = (p: P) => (
     <path d="M4 21a8 8 0 0 1 16 0" />
   </Base>
 );
+export const IconPrinter = (p: P) => (
+  <Base {...p}>
+    <path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
+    <path d="M7 14h10v6H7z" />
+  </Base>
+);
 export const IconDownload = (p: P) => (
   <Base {...p}>
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
