@@ -32,6 +32,45 @@ test("remember that … saves a memory", async ({ page, isMobile }) => {
   await expect(page.getByTestId("memory-list")).toContainText("My favourite language is Rust");
 });
 
+test("memories can be edited and filtered", async ({ page, isMobile }) => {
+  await page.goto("/");
+  const openMemory = async () => {
+    if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+    await page.getByRole("button", { name: "Memory" }).click();
+  };
+  await openMemory();
+  const add = page.getByRole("textbox", { name: "New memory" });
+  for (const fact of ["Lives in Zurich", "Drinks tea", "Has a dog", "Plays chess", "Likes jazz", "Runs on Sundays"]) {
+    await add.fill(fact);
+    await add.press("Enter");
+  }
+  const list = page.getByTestId("memory-list");
+  await expect(list.getByRole("listitem")).toHaveCount(6);
+
+  await page.getByRole("button", { name: "Edit “Lives in Zurich”" }).click();
+  const edit = page.getByRole("textbox", { name: "Edit memory" });
+  await edit.fill("Lives in Bern");
+  await edit.press("Escape");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(list).toContainText("Lives in Zurich");
+
+  await page.getByRole("button", { name: "Edit “Lives in Zurich”" }).click();
+  await edit.fill("Lives in Bern");
+  await edit.press("Enter");
+  await expect(list).toContainText("Lives in Bern");
+  await expect(list).not.toContainText("Zurich");
+
+  await page.getByRole("searchbox", { name: "Filter memories" }).fill("bern");
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await page.getByRole("searchbox", { name: "Filter memories" }).fill("xyz");
+  await expect(list).toContainText("No memories match");
+
+  await page.reload();
+  await openMemory();
+  await expect(list).toContainText("Lives in Bern");
+  await expect(list.getByRole("listitem")).toHaveCount(6);
+});
+
 test("workspaces carry their own chats", async ({ page, isMobile }) => {
   await page.goto("/");
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
@@ -185,7 +224,10 @@ test("agent mode uses tools and asks before saving a memory", async ({ page, isM
 
   // The decision is stored with the chat.
   if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
-  await page.getByRole("button", { name: /What is 6 times 7/ }).first().click();
+  await page
+    .getByRole("button", { name: /What is 6 times 7/ })
+    .first()
+    .click();
   await expect(page.getByTestId("agent-action")).toContainText("Approved");
 });
 

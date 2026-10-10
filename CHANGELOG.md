@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Edit memories: click the pencil next to a memory to fix it in place (Enter saves, Escape cancels). Once you have 6 or more memories, a filter box helps you find one.
 - OpenRouter's free auto-router ("Free auto (best available)") is listed first when an OpenRouter key is set. It picks whichever free model is available, so chats keep working when one free model is busy.
 - Security: the server now refuses paid OpenRouter models even if a client asks for one directly. Before, only the model picker hid them. Paid models still work if `OPENROUTER_ALLOW_PAID=true` is set or the model is listed in `OPENROUTER_MODELS`.
 

@@ -2,6 +2,14 @@
 
 Newest first. Each entry records what changed and how it was verified.
 
+## 2026-10-10: Memory editing
+- The Memory panel now edits memories in place (pencil button, Enter saves, Escape cancels without closing the dialog) and shows a filter box once there are 6 or more. Edits reuse the stores' existing upsert, so they sync for signed-in users with no schema change.
+- Categories stay on the roadmap: they need a schema change and a UI decision, and filtering covers the main need for now.
+
+**Verified**
+- `npm run check` and `npm run build` pass.
+- 35 browser tests pass, 1 skipped by design (new on desktop and mobile: add 6 memories, cancel an edit with Escape, save an edit, filter, and see the edit survive a reload).
+
 ## 2026-10-09: v0.6.0, Agent mode, offline app, desktop and mobile shells
 - **Agent mode** (src/lib/server/agent.ts): an OpenAI-style tool-calling loop on the server with web search, page reading, an exact calculator (src/lib/calc.ts, no eval) and date/time. Saving memories and creating workspaces are proposals shown as approval cards; nothing changes until the user clicks Approve, and the decision is stored with the message (also in Supabase). Up to 5 tool rounds; models that reject tools fall back to a plain answer with a note.
 - **Offline**: the service worker now caches the app shell and build assets, so the installed app opens without a connection and saved chats on the device stay readable. An offline banner appears and sending is paused until the connection returns.

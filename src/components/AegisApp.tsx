@@ -89,7 +89,11 @@ export function AegisApp() {
     () => true,
     () => false,
   );
-  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(!supabase);
 
@@ -771,6 +775,17 @@ export function AegisApp() {
         <MemoryPanel
           memories={memories}
           onAdd={(t) => addMemory(t).catch((e) => setToast((e as Error).message))}
+          onEdit={async (id, content) => {
+            const m = memories.find((x) => x.id === id);
+            if (!m || !store) return;
+            const updated = { ...m, content };
+            try {
+              await store.saveMemory(updated);
+              setMemories((prev) => prev.map((x) => (x.id === id ? updated : x)));
+            } catch (e) {
+              setToast(`Couldn't save memory: ${(e as Error).message}`);
+            }
+          }}
           onDelete={async (id) => {
             await store?.deleteMemory(id);
             setMemories((prev) => prev.filter((m) => m.id !== id));
