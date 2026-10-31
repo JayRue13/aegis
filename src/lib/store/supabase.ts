@@ -2,7 +2,7 @@
 // supabase/migrations) guarantees each user only ever sees their own rows.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ChatMessage, Conversation, Memory, Project } from "../types";
+import type { ChatMessage, Conversation, KnowledgeFile, Memory, Project } from "../types";
 import type { ChatStore } from "./types";
 
 type Row = Record<string, unknown>;
@@ -191,7 +191,38 @@ export class SupabaseStore implements ChatStore {
   }
 
   async deleteProject(id: string) {
+    // Knowledge files go with it (on delete cascade).
     check(await this.db.from("projects").delete().eq("id", id));
+  }
+
+  async listKnowledge(projectId: string): Promise<KnowledgeFile[]> {
+    const rows = check<Row[]>(
+      await this.db.from("knowledge_files").select("*").eq("project_id", projectId).order("created_at"),
+    );
+    return rows.map((r) => ({
+      id: r.id as string,
+      projectId: r.project_id as string,
+      name: r.name as string,
+      text: r.content as string,
+      createdAt: r.created_at as string,
+    }));
+  }
+
+  async saveKnowledge(f: KnowledgeFile) {
+    check(
+      await this.db.from("knowledge_files").upsert({
+        id: f.id,
+        user_id: this.userId,
+        project_id: f.projectId,
+        name: f.name,
+        content: f.text,
+        created_at: f.createdAt,
+      }),
+    );
+  }
+
+  async deleteKnowledge(_projectId: string, id: string) {
+    check(await this.db.from("knowledge_files").delete().eq("id", id));
   }
 
   async listMemories(): Promise<Memory[]> {

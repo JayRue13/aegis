@@ -16,7 +16,7 @@ export function tokenize(text: string): string[] {
     .filter((t) => t.length > 1 && !STOP.has(t));
 }
 
-function stem(t: string): string {
+export function stem(t: string): string {
   return t.replace(/(ing|ed|es|s)$/, "");
 }
 

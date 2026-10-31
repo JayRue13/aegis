@@ -2,6 +2,9 @@
 
 Newest first. Each entry: decision, why, and what would change it.
 
+## 2026-10-10: Workspace knowledge uses keyword ranking in the browser
+Knowledge files are stored as extracted text (localStorage for guests, a `knowledge_files` table with row-level security for signed-in users). The browser ranks chunks with BM25 and sends at most about 8,000 characters of excerpts with each message, so the server stays stateless and no embedding API or vector index is needed. The prompt marks excerpts as information, not instructions. Revisit with pgvector embeddings when workspaces grow beyond what keyword matching handles well.
+
 ## 2026-10-09: Agent tools that change data need approval
 Read-only tools (search, read a page, calculator, date) run automatically. Tools that change the user's data only propose the change; the browser shows an approval card and applies it on Approve. This keeps prompt-injected pages from silently writing memories or creating workspaces. Tools run on the server for at most 5 rounds per reply.
 

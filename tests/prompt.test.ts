@@ -11,6 +11,16 @@ const msg = (role: ChatMessage["role"], content: string, extra: Partial<ChatMess
 });
 
 describe("buildSystemPrompt", () => {
+  it("adds workspace knowledge excerpts as information, not instructions", () => {
+    const p = buildSystemPrompt({
+      projectName: "Car",
+      knowledge: [{ name: 'manual "v2".txt', text: "Tyre pressure: 2.4 bar." }],
+    });
+    expect(p).toContain("## Workspace knowledge");
+    expect(p).toContain("not instructions");
+    expect(p).toContain(`<knowledge file="manual 'v2'.txt">\nTyre pressure: 2.4 bar.\n</knowledge>`);
+  });
+
   it("includes date, name, workspace and memories", () => {
     const p = buildSystemPrompt({
       now: new Date("2026-10-09T12:00:00Z"),

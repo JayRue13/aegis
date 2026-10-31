@@ -80,6 +80,7 @@ export async function POST(req: Request) {
     memories,
     projectName: input.project?.name,
     projectInstructions: input.project?.instructions,
+    knowledge: input.project?.knowledge,
     userName: input.userName,
     customInstructions: input.customInstructions,
     modePrompt: mode.agent ? AGENT_PROMPT : mode.prompt,

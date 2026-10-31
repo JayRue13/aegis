@@ -52,7 +52,9 @@ createServer((req, res) => {
     if (system.includes("extract durable facts")) return stream(res, '["User is training to be a pilot"]');
     const remembered = system.includes("What you remember about the user") ? " [memories received]" : "";
     const searched = lastText.includes("Web search results") ? " [search received]" : "";
+    const known = system.match(/<knowledge file="([^"]+)">\n([^\n]*)/);
+    const knowledge = known ? ` [knowledge: ${known[1]}: ${known[2]}]` : "";
     const moded = system.includes("Research mode") ? " [research mode]" : "";
-    stream(res, `Echo: ${lastText.split("\n").pop()}${remembered}${searched}${moded}`);
+    stream(res, `Echo: ${lastText.split("\n").pop()}${remembered}${searched}${moded}${knowledge}`);
   });
 }).listen(port, "127.0.0.1");

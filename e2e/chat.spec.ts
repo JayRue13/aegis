@@ -258,3 +258,39 @@ test("works offline after the first visit", async ({ page, context, browserName,
   await context.setOffline(false);
   await expect(page.getByTestId("offline-banner")).toBeHidden();
 });
+
+test("workspace knowledge files are used in that workspace's chats", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await page.getByTestId("model-picker").click();
+  await page.getByRole("option", { name: "echo-1" }).click();
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: "New workspace" }).click();
+  await page.getByPlaceholder("e.g. Thesis, Startup, Spanish practice").fill("Car");
+  await page.getByRole("button", { name: "Save" }).click();
+
+  // On mobile the drawer is still open after saving.
+  await page.getByRole("button", { name: "Edit Car" }).click();
+  await page.getByLabel("Add knowledge files").setInputFiles({
+    name: "manual.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Tyre pressure is 2.4 bar."),
+  });
+  await expect(page.getByTestId("knowledge-list")).toContainText("manual.txt");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  if (isMobile) await page.getByRole("complementary").getByRole("button", { name: "Close sidebar" }).click();
+
+  const box = page.getByRole("textbox", { name: "Message" });
+  await box.fill("What tyre pressure?");
+  await box.press("Enter");
+  await expect(page.locator('[data-role="assistant"]').last()).toContainText(
+    "[knowledge: manual.txt: Tyre pressure is 2.4 bar.]",
+  );
+
+  // The file survives a reload and can be removed.
+  await page.reload();
+  if (isMobile) await page.getByRole("button", { name: "Open sidebar" }).click();
+  await page.getByRole("button", { name: "Edit Car" }).click();
+  await expect(page.getByTestId("knowledge-list")).toContainText("manual.txt");
+  await page.getByRole("button", { name: "Remove manual.txt" }).click();
+  await expect(page.getByTestId("knowledge-list")).toContainText("No files yet.");
+});

@@ -35,7 +35,14 @@ export const chatRequestSchema = z.object({
     .max(500)
     .optional(),
   project: z
-    .object({ name: z.string().max(200), instructions: z.string().max(20_000) })
+    .object({
+      name: z.string().max(200),
+      instructions: z.string().max(20_000),
+      knowledge: z
+        .array(z.object({ name: z.string().max(200), text: z.string().max(12_000) }))
+        .max(8)
+        .optional(),
+    })
     .nullable()
     .optional(),
   userName: z.string().max(100).optional(),

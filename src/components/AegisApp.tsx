@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Session } from "@supabase/supabase-js";
-import type { AgentAction, ChatMessage, Conversation, Memory, ModelInfo, Project } from "@/lib/types";
+import type { AgentAction, ChatMessage, Conversation, KnowledgeFile, Memory, ModelInfo, Project } from "@/lib/types";
 import type { ChatStore } from "@/lib/store/types";
 import { exportAll, importAll, type Backup } from "@/lib/store/types";
 import { LocalStore } from "@/lib/store/local";
 import { SupabaseStore } from "@/lib/store/supabase";
 import { getSupabase } from "@/lib/supabase-client";
-import { ChatRequestError, extractDocument, streamChat } from "@/lib/chat-client";
+import { ChatRequestError, extractDocument, isDocumentFile, isTextFile, streamChat } from "@/lib/chat-client";
+import { selectKnowledge } from "@/lib/knowledge";
 import { extractRememberRequest } from "@/lib/memory";
 import { cn, deriveTitle, nowIso, uid } from "@/lib/util";
 import { Sidebar } from "./Sidebar";
@@ -71,6 +72,9 @@ function greeting(name: string): string {
   const part = h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
   return name ? `${part}, ${name}` : part;
 }
+
+/** Matches the database limit on a knowledge file's text. */
+const MAX_KNOWLEDGE_CHARS = 500_000;
 
 function subscribeOnline(onChange: () => void) {
   window.addEventListener("online", onChange);
@@ -313,6 +317,81 @@ export function AegisApp() {
     [store, model, memories, authHeaders],
   );
 
+  // Workspace knowledge files, cached per workspace once loaded.
+  const [knowledge, setKnowledge] = useState<Record<string, KnowledgeFile[]>>({});
+  const [knowledgeBusy, setKnowledgeBusy] = useState(false);
+  const knowledgeRef = useRef(knowledge);
+  useEffect(() => {
+    knowledgeRef.current = knowledge;
+  }, [knowledge]);
+
+  const loadKnowledge = useCallback(
+    async (projectId: string): Promise<KnowledgeFile[]> => {
+      const cached = knowledgeRef.current[projectId];
+      if (cached || !store) return cached ?? [];
+      const files = await store.listKnowledge(projectId);
+      setKnowledge((prev) => ({ ...prev, [projectId]: files }));
+      return files;
+    },
+    [store],
+  );
+
+  const addKnowledge = useCallback(
+    async (projectId: string, files: File[]) => {
+      if (!store) return;
+      setKnowledgeBusy(true);
+      try {
+        for (const f of files) {
+          let text: string;
+          try {
+            if (isDocumentFile(f)) {
+              if (f.size > 4 * 1024 * 1024) throw new Error(`${f.name} is larger than 4 MB.`);
+              text = (await extractDocument(f, authHeaders())).text;
+            } else if (isTextFile(f)) {
+              text = await f.text();
+            } else {
+              throw new Error(`${f.name} isn't a text, PDF or Word file.`);
+            }
+            if (!text.trim()) throw new Error(`${f.name} has no readable text.`);
+            if (text.length > MAX_KNOWLEDGE_CHARS) {
+              text = text.slice(0, MAX_KNOWLEDGE_CHARS);
+              setToast(`${f.name} is long, so only the first part was added.`);
+            }
+            const file: KnowledgeFile = { id: uid(), projectId, name: f.name.slice(0, 200), text, createdAt: nowIso() };
+            await store.saveKnowledge(file);
+            setKnowledge((prev) => ({ ...prev, [projectId]: [...(prev[projectId] ?? []), file] }));
+          } catch (err) {
+            setToast(`Couldn't add ${f.name}: ${(err as Error).message}`);
+          }
+        }
+      } finally {
+        setKnowledgeBusy(false);
+      }
+    },
+    [store, authHeaders],
+  );
+
+  const deleteKnowledge = useCallback(
+    async (file: KnowledgeFile) => {
+      if (!store) return;
+      try {
+        await store.deleteKnowledge(file.projectId, file.id);
+        setKnowledge((prev) => ({
+          ...prev,
+          [file.projectId]: (prev[file.projectId] ?? []).filter((f) => f.id !== file.id),
+        }));
+      } catch (err) {
+        setToast(`Couldn't remove ${file.name}: ${(err as Error).message}`);
+      }
+    },
+    [store],
+  );
+
+  const editingProjectId = panel && typeof panel === "object" ? panel.project?.id : undefined;
+  useEffect(() => {
+    if (editingProjectId) loadKnowledge(editingProjectId).catch(() => {});
+  }, [editingProjectId, loadKnowledge]);
+
   const runCompletion = useCallback(
     async (conv: Conversation, history: ChatMessage[]) => {
       if (!store || !model) return;
@@ -323,6 +402,9 @@ export function AegisApp() {
       abortRef.current = controller;
 
       const project = projects.find((p) => p.id === conv.projectId) ?? null;
+      const lastUserText = [...history].reverse().find((m) => m.role === "user")?.content ?? "";
+      const files = project ? await loadKnowledge(project.id).catch(() => []) : [];
+      const snippets = selectKnowledge(files, lastUserText);
       let text = "";
       let frame = 0;
       const flush = () => {
@@ -339,7 +421,13 @@ export function AegisApp() {
             model,
             messages: history,
             memories,
-            project: project ? { name: project.name, instructions: project.instructions } : null,
+            project: project
+              ? {
+                  name: project.name,
+                  instructions: project.instructions,
+                  knowledge: snippets.length ? snippets : undefined,
+                }
+              : null,
             userName: userName || undefined,
             customInstructions: customInstructions || undefined,
             mode,
@@ -391,7 +479,20 @@ export function AegisApp() {
         setToast(`Couldn't save reply: ${(err as Error).message}`);
       }
     },
-    [store, model, projects, memories, userName, authHeaders, learn, learnFrom, customInstructions, mode, webSearch],
+    [
+      store,
+      model,
+      projects,
+      memories,
+      userName,
+      authHeaders,
+      learn,
+      learnFrom,
+      customInstructions,
+      mode,
+      webSearch,
+      loadKnowledge,
+    ],
   );
 
   const addMemory = useCallback(
@@ -800,6 +901,10 @@ export function AegisApp() {
           onSave={(name, instructions) => saveProject(panel.project, name, instructions)}
           onDelete={panel.project ? () => deleteProject(panel.project!) : undefined}
           onClose={() => setPanel(null)}
+          knowledge={panel.project ? knowledge[panel.project.id] : undefined}
+          knowledgeBusy={knowledgeBusy}
+          onAddKnowledge={panel.project ? (files) => addKnowledge(panel.project!.id, files) : undefined}
+          onDeleteKnowledge={deleteKnowledge}
         />
       )}
 
