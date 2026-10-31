@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Workspace knowledge files: add text, Markdown, PDF or Word files to a workspace (Edit workspace → Add files). In that workspace's chats, AEGIS reads the most relevant parts of them. Small workspaces are sent whole; larger ones send the best-matching excerpts. Files sync for signed-in users (new migration `0004_knowledge.sql`) and are included in backups.
 - OpenRouter's free auto-router ("Free auto (best available)") is listed first when an OpenRouter key is set. It picks whichever free model is available, so chats keep working when one free model is busy.
 - Security: the server now refuses paid OpenRouter models even if a client asks for one directly. Before, only the model picker hid them. Paid models still work if `OPENROUTER_ALLOW_PAID=true` is set or the model is listed in `OPENROUTER_MODELS`.
 

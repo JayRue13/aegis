@@ -66,9 +66,26 @@ describe("LocalStore", () => {
     await a.saveConversation(conv("a", "2026-01-01"));
     await a.saveMessage("a", { id: "m", role: "user", content: "hi", createdAt: "x" });
     await a.saveMemory({ id: "k", content: "likes tea", createdAt: "x" });
+    await a.saveProject({ id: "p", name: "Car", instructions: "", createdAt: "x" });
+    await a.saveKnowledge({ id: "f", projectId: "p", name: "manual.txt", text: "tyres 2.4 bar", createdAt: "x" });
     const b = new LocalStore(new MemoryKV());
     await importAll(b, await exportAll(a));
     expect(await b.getMessages("a")).toHaveLength(1);
     expect((await b.listMemories())[0].content).toBe("likes tea");
+    expect((await b.listKnowledge("p"))[0].text).toBe("tyres 2.4 bar");
+  });
+
+  it("stores knowledge files per workspace and removes them with the workspace", async () => {
+    const s = new LocalStore(new MemoryKV());
+    await s.saveProject({ id: "p", name: "Car", instructions: "", createdAt: "x" });
+    await s.saveKnowledge({ id: "f1", projectId: "p", name: "a.txt", text: "one", createdAt: "x" });
+    await s.saveKnowledge({ id: "f2", projectId: "p", name: "b.txt", text: "two", createdAt: "y" });
+    await s.saveKnowledge({ id: "f3", projectId: "q", name: "c.txt", text: "other", createdAt: "x" });
+    expect((await s.listKnowledge("p")).map((f) => f.id)).toEqual(["f1", "f2"]);
+    await s.deleteKnowledge("p", "f1");
+    expect((await s.listKnowledge("p")).map((f) => f.id)).toEqual(["f2"]);
+    await s.deleteProject("p");
+    expect(await s.listKnowledge("p")).toEqual([]);
+    expect(await s.listKnowledge("q")).toHaveLength(1);
   });
 });

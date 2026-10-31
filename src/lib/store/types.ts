@@ -1,7 +1,7 @@
 // Storage abstraction: the app talks to a ChatStore, which is either the
 // browser's localStorage (guest mode) or Supabase (signed-in, synced).
 
-import type { ChatMessage, Conversation, Memory, Project } from "../types";
+import type { ChatMessage, Conversation, KnowledgeFile, Memory, Project } from "../types";
 
 export interface ChatStore {
   readonly kind: "local" | "supabase";
@@ -17,7 +17,12 @@ export interface ChatStore {
 
   listProjects(): Promise<Project[]>;
   saveProject(p: Project): Promise<void>;
+  /** Also deletes the workspace's knowledge files. */
   deleteProject(id: string): Promise<void>;
+
+  listKnowledge(projectId: string): Promise<KnowledgeFile[]>;
+  saveKnowledge(f: KnowledgeFile): Promise<void>;
+  deleteKnowledge(projectId: string, id: string): Promise<void>;
 
   listMemories(): Promise<Memory[]>;
   saveMemory(m: Memory): Promise<void>;
@@ -30,18 +35,22 @@ export interface Backup {
   conversations: (Conversation & { messages: ChatMessage[] })[];
   projects: Project[];
   memories: Memory[];
+  /** Added after version 1 shipped; older backups omit it. */
+  knowledge?: KnowledgeFile[];
 }
 
 export async function exportAll(store: ChatStore): Promise<Backup> {
   const conversations = await store.listConversations();
+  const projects = await store.listProjects();
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
     conversations: await Promise.all(
       conversations.map(async (c) => ({ ...c, messages: await store.getMessages(c.id) })),
     ),
-    projects: await store.listProjects(),
+    projects,
     memories: await store.listMemories(),
+    knowledge: (await Promise.all(projects.map((p) => store.listKnowledge(p.id)))).flat(),
   };
 }
 
@@ -50,6 +59,7 @@ export async function importAll(store: ChatStore, backup: Backup): Promise<void>
   if (backup.version !== 1) throw new Error("Unsupported backup version");
   for (const p of backup.projects) await store.saveProject(p);
   for (const m of backup.memories) await store.saveMemory(m);
+  for (const f of backup.knowledge ?? []) await store.saveKnowledge(f);
   for (const { messages, ...c } of backup.conversations) {
     await store.saveConversation(c);
     for (const m of messages) await store.saveMessage(c.id, m);
