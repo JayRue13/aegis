@@ -9,6 +9,7 @@ Newest first. Each entry records what changed and how it was verified.
 **Verified**
 - `npm run check` and `npm run build` pass.
 - 35 browser tests pass, 1 skipped by design (new on desktop and mobile: add 6 memories, cancel an edit with Escape, save an edit, filter, and see the edit survive a reload).
+
 ## 2026-10-31: Security upgrade and CI runner pin
 - Next.js 16.4.0 → 16.4.3 (GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr, critical unauthenticated RCE; GHSA-p3m5-59mp-jv5r, DoS). `next build` had started refusing to run on 16.4.0. zod → 4.6.7 and undici → 7.30.1 for their high-severity advisories. `npm audit --omit=dev`: 0 vulnerabilities. A moderate minimatch advisory remains in the dev-only lint toolchain.
 - CI pinned to `ubuntu-24.04`: GitHub's `ubuntu-latest` moved to 26.04, where Playwright 1.56 cannot install Chromium, so every PR's `check` job failed before running browser tests.
