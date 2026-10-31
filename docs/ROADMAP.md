@@ -22,7 +22,8 @@ Status: ✅ done · 🔨 in progress · ⏳ next · 💤 later
 - ✅ Workspaces with instructions; conversation search
 - ✅ Automatic memory extraction (on by default, toggle in Settings; runs only when the user shares something personal)
 - ⏳ pgvector embeddings for memory + chat search (Gemini free embeddings)
-- 💤 Memory editing and categories
+- ✅ Memory editing and filtering
+- 💤 Memory categories
 
 ## Milestone 3: Files and multimodal 🔨
 - ✅ Text/code file context, image input for vision models
